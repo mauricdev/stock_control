@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { BaseChartDirective } from 'ng2-charts';
 import { Chart, ChartData, ChartOptions, registerables } from 'chart.js';
 import {
@@ -16,7 +16,7 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, BaseChartDirective],
+  imports: [CommonModule, RouterLink, RouterLinkActive, BaseChartDirective],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
@@ -26,8 +26,17 @@ export class DashboardComponent implements OnInit {
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
 
+  insumosCriticos: InsumoBase[] = [];
+  costoTotalInsumosBodega = 0;
   isLoading = true;
   errorMessage: string | null = null;
+
+  // Estado del Menú Móvil Hamburguesa
+  isMobileMenuOpen = false;
+
+  toggleMobileMenu(): void {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+  }
 
   // Filtro Temporal
   filtroTiempo: 'hoy' | 'mes' | 'anio' = 'mes';
@@ -42,11 +51,6 @@ export class DashboardComponent implements OnInit {
     mermasCount: 0,
     movimientos: [],
   };
-
-  // Valor Monetario Acumulado en Bodega
-  costoTotalInsumosBodega = 0;
-
-  insumosCriticos: InsumoBase[] = [];
 
   // Configuración del Gráfico de Líneas (Line Chart)
   public lineChartOptions: ChartOptions<'line'> = {

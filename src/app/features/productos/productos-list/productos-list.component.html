@@ -1,78 +1,170 @@
 <div class="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
   
   <!-- Barra de Navegación Superior -->
-  <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-20">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+  <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       
-      <!-- Marca / Navegación por pestañas -->
-      <div class="flex items-center gap-6">
-        <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-xl bg-purple-600 flex items-center justify-center shadow-lg shadow-purple-600/30 text-white font-bold">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-            </svg>
+      <!-- Fila Principal del Header -->
+      <div class="h-16 flex items-center justify-between">
+        
+        <!-- Marca / Navegación Desktop -->
+        <div class="flex items-center gap-6">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-purple-600 flex items-center justify-center shadow-lg shadow-purple-600/30 text-white font-bold">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+            </div>
+            <span class="font-bold text-lg tracking-tight text-white">StockControl</span>
           </div>
-          <span class="font-bold text-lg tracking-tight text-white">StockControl</span>
+
+          <!-- Navegación de Escritorio (>= lg: 1024px) -->
+          <nav class="hidden lg:flex items-center gap-2">
+            <a
+              routerLink="/dashboard"
+              routerLinkActive="bg-sky-600/20 text-sky-300 border-sky-500/30 font-semibold"
+              [routerLinkActiveOptions]="{ exact: true }"
+              class="px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-400 border border-transparent hover:text-white hover:bg-slate-800/60 transition-all"
+            >
+              Dashboard
+            </a>
+            <a
+              routerLink="/insumos"
+              routerLinkActive="bg-indigo-600/20 text-indigo-300 border-indigo-500/30 font-semibold"
+              class="px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-400 border border-transparent hover:text-white hover:bg-slate-800/60 transition-all"
+            >
+              Insumos Base
+            </a>
+            <a
+              routerLink="/productos"
+              routerLinkActive="bg-purple-600/20 text-purple-300 border-purple-500/30 font-semibold"
+              class="px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-400 border border-transparent hover:text-white hover:bg-slate-800/60 transition-all"
+            >
+              Productos Compuestos
+            </a>
+            <a
+              routerLink="/pos"
+              routerLinkActive="bg-emerald-600/20 text-emerald-300 border-emerald-500/30 font-semibold"
+              class="px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-400 border border-transparent hover:text-white hover:bg-slate-800/60 transition-all"
+            >
+              Punto de Venta (POS)
+            </a>
+            <a
+              routerLink="/mermas"
+              routerLinkActive="bg-amber-600/20 text-amber-300 border-amber-500/30 font-semibold"
+              class="px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-400 border border-transparent hover:text-white hover:bg-slate-800/60 transition-all"
+            >
+              Historial Mermas
+            </a>
+          </nav>
         </div>
 
-        <nav class="hidden md:flex items-center gap-2">
+        <!-- Acciones de Usuario & Botón Menú Hamburguesa -->
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            (click)="loadProductos()"
+            title="Recargar datos"
+            class="p-2 rounded-xl border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800 transition-all cursor-pointer"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" [ngClass]="{ 'animate-spin': isLoading }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </button>
+
+          <button
+            type="button"
+            (click)="onSignOut()"
+            class="px-3 py-1.5 rounded-xl border border-slate-800 text-slate-300 hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            <span class="hidden sm:inline">Salir</span>
+          </button>
+
+          <!-- Botón Menú Hamburguesa Móvil (Visible en celulares/tablets < lg) -->
+          <button
+            type="button"
+            (click)="toggleMobileMenu()"
+            title="Menú Móvil"
+            class="lg:hidden p-2 rounded-xl border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800 transition-all cursor-pointer flex items-center justify-center ml-1"
+          >
+            @if (isMobileMenuOpen) {
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            } @else {
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            }
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Menú Desplegable Vertical Móvil -->
+      @if (isMobileMenuOpen) {
+        <div class="lg:hidden border-t border-slate-800 py-3 space-y-1.5 bg-slate-900 animate-fade-in">
           <a
             routerLink="/dashboard"
-            class="px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition-all"
+            (click)="isMobileMenuOpen = false"
+            routerLinkActive="bg-sky-600/20 text-sky-300 border-sky-500/30 font-bold"
+            [routerLinkActiveOptions]="{ exact: true }"
+            class="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-slate-300 border border-transparent hover:bg-slate-800 transition-all"
           >
-            Dashboard
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            <span>Dashboard</span>
           </a>
           <a
             routerLink="/insumos"
-            class="px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition-all"
+            (click)="isMobileMenuOpen = false"
+            routerLinkActive="bg-indigo-600/20 text-indigo-300 border-indigo-500/30 font-bold"
+            class="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-slate-300 border border-transparent hover:bg-slate-800 transition-all"
           >
-            Insumos Base
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+            <span>Insumos Base</span>
           </a>
           <a
             routerLink="/productos"
-            class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-purple-600/20 text-purple-300 border border-purple-500/30 transition-all"
+            (click)="isMobileMenuOpen = false"
+            routerLinkActive="bg-purple-600/20 text-purple-300 border-purple-500/30 font-bold"
+            class="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-slate-300 border border-transparent hover:bg-slate-800 transition-all"
           >
-            Productos Compuestos
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+            <span>Productos Compuestos</span>
           </a>
           <a
             routerLink="/pos"
-            class="px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition-all"
+            (click)="isMobileMenuOpen = false"
+            routerLinkActive="bg-emerald-600/20 text-emerald-300 border-emerald-500/30 font-bold"
+            class="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-slate-300 border border-transparent hover:bg-slate-800 transition-all"
           >
-            Punto de Venta (POS)
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" />
+            </svg>
+            <span>Punto de Venta (POS)</span>
           </a>
           <a
             routerLink="/mermas"
-            class="px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition-all"
+            (click)="isMobileMenuOpen = false"
+            routerLinkActive="bg-amber-600/20 text-amber-300 border-amber-500/30 font-bold"
+            class="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-slate-300 border border-transparent hover:bg-slate-800 transition-all"
           >
-            Historial Mermas
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <span>Historial Mermas</span>
           </a>
-        </nav>
-      </div>
-
-      <!-- Acciones de Usuario -->
-      <div class="flex items-center gap-3">
-        <button
-          type="button"
-          (click)="loadProductos()"
-          title="Recargar datos"
-          class="p-2 rounded-xl border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800 transition-all cursor-pointer"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" [ngClass]="{ 'animate-spin': isLoading }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-        </button>
-
-        <button
-          type="button"
-          (click)="onSignOut()"
-          class="px-3.5 py-1.5 rounded-xl border border-slate-800 text-slate-300 hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
-          <span>Cerrar Sesión</span>
-        </button>
-      </div>
+        </div>
+      }
 
     </div>
   </header>
@@ -84,18 +176,18 @@
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
         <h1 class="text-2xl font-bold tracking-tight text-white">Productos Compuestos</h1>
-        <p class="text-sm text-slate-400 mt-1">Catálogo de productos finales elaborados con recetas de insumos</p>
+        <p class="text-sm text-slate-400 mt-1">Gestión de productos finales, recetas e insumos base requeridos</p>
       </div>
 
       <button
         type="button"
-        (click)="openForm(null)"
+        (click)="openForm()"
         class="px-4 py-2.5 bg-purple-600 hover:bg-purple-500 active:scale-[0.98] text-white font-medium rounded-xl text-sm shadow-lg shadow-purple-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
-        <span>Nuevo Producto</span>
+        <span>Crear Producto Compuesto</span>
       </button>
     </div>
 
@@ -109,7 +201,7 @@
       </div>
     }
 
-    <!-- Lista / Tabla de Productos -->
+    <!-- Tabla de Productos Compuestos -->
     <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
       
       @if (isLoading) {
@@ -118,7 +210,7 @@
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
-          <span class="text-sm font-medium">Cargando catálogo de productos...</span>
+          <span class="text-sm font-medium">Cargando productos compuestos...</span>
         </div>
       } @else if (productos.length === 0) {
         <div class="p-12 text-center flex flex-col items-center justify-center">
@@ -127,12 +219,12 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
             </svg>
           </div>
-          <h3 class="text-base font-semibold text-white">No hay productos registrados</h3>
-          <p class="text-xs text-slate-400 mt-1 max-w-sm">Aún no has creado productos finales. Haz clic en "Nuevo Producto" para asignar una receta.</p>
+          <h3 class="text-base font-bold text-white mb-1">No hay productos creados</h3>
+          <p class="text-xs text-slate-400 max-w-sm mb-6">Comienza registrando tu primer producto final y definiendo los insumos que componen su receta.</p>
           <button
             type="button"
-            (click)="openForm(null)"
-            class="mt-5 px-4 py-2 bg-purple-600/20 border border-purple-500/30 hover:bg-purple-600/30 text-purple-300 text-xs font-medium rounded-xl transition-all cursor-pointer"
+            (click)="openForm()"
+            class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold rounded-xl transition-all cursor-pointer"
           >
             + Crear Primer Producto
           </button>
@@ -143,92 +235,79 @@
             <thead class="bg-slate-950/60 text-xs uppercase tracking-wider text-slate-400 border-b border-slate-800">
               <tr>
                 <th scope="col" class="px-6 py-4 font-semibold">Producto</th>
-                <th scope="col" class="px-6 py-4 font-semibold">Categoría</th>
-                <th scope="col" class="px-6 py-4 font-semibold text-right">Precio de Venta</th>
-                <th scope="col" class="px-6 py-4 font-semibold text-right">Costo de Producción</th>
-                <th scope="col" class="px-6 py-4 font-semibold text-right">Ganancia</th>
+                <th scope="col" class="px-6 py-4 font-semibold text-center">Categoría</th>
+                <th scope="col" class="px-6 py-4 font-semibold text-right">Precio Venta</th>
+                <th scope="col" class="px-6 py-4 font-semibold text-right">Costo Producción</th>
+                <th scope="col" class="px-6 py-4 font-semibold text-right">Margen (%)</th>
+                <th scope="col" class="px-6 py-4 font-semibold text-center">Receta</th>
                 <th scope="col" class="px-6 py-4 font-semibold text-center">Acciones</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-800/60">
-              @for (item of productos; track item.id || item.nombre) {
-                <tr class="hover:bg-slate-800/40 transition-colors">
-                  <!-- Nombre del Producto -->
-                  <td class="px-6 py-4 font-medium text-white whitespace-nowrap">
-                    {{ item.nombre }}
+              @for (producto of productos; track producto.id || producto.nombre) {
+                <tr class="hover:bg-slate-800/30 transition-colors">
+                  <td class="px-6 py-4 font-bold text-white whitespace-nowrap">
+                    {{ producto.nombre }}
                   </td>
-
-                  <!-- Categoría -->
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700">
-                      {{ item.categoria || 'General' }}
+                  <td class="px-6 py-4 text-center whitespace-nowrap">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-800 text-purple-300 border border-purple-500/20">
+                      {{ producto.categoria || 'Sin Categoría' }}
                     </span>
                   </td>
-
-                  <!-- Precio de Venta -->
-                  <td class="px-6 py-4 text-right font-bold text-white whitespace-nowrap">
-                    ${{ item.precio_venta | number:'1.2-2' }}
+                  <td class="px-6 py-4 text-right font-semibold text-slate-100 whitespace-nowrap">
+                    ${{ producto.precio_venta | number:'1.2-2' }}
                   </td>
-
-                  <!-- Costo de Producción -->
-                  <td class="px-6 py-4 text-right font-semibold text-purple-300 whitespace-nowrap">
-                    ${{ item.costo_total | number:'1.2-2' }}
+                  <td class="px-6 py-4 text-right font-medium text-slate-400 whitespace-nowrap">
+                    ${{ producto.costo_total | number:'1.2-2' }}
                   </td>
-
-                  <!-- Ganancia (Verde si >= 0, Rojo si < 0) -->
-                  <td class="px-6 py-4 text-right font-bold whitespace-nowrap">
+                  <td class="px-6 py-4 text-right whitespace-nowrap">
+                    @let margen = producto.precio_venta > 0 ? ((producto.precio_venta - producto.costo_total) / producto.precio_venta * 100) : 0;
                     <span
-                      class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs"
+                      class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold"
                       [ngClass]="{
-                        'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20': item.ganancia >= 0,
-                        'bg-red-500/10 text-red-400 border border-red-500/20': item.ganancia < 0
+                        'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20': margen >= 40,
+                        'bg-amber-500/10 text-amber-400 border border-amber-500/20': margen >= 15 && margen < 40,
+                        'bg-red-500/10 text-red-400 border border-red-500/20': margen < 15
                       }"
                     >
-                      ${{ item.ganancia | number:'1.2-2' }}
+                      {{ margen | number:'1.1-1' }}%
                     </span>
                   </td>
-
-                  <!-- Acciones: Ver Receta, Editar, Eliminar -->
+                  <td class="px-6 py-4 text-center whitespace-nowrap">
+                    <button
+                      type="button"
+                      (click)="openRecetaModal(producto)"
+                      class="px-3 py-1 bg-purple-600/10 hover:bg-purple-600/20 text-purple-300 border border-purple-500/30 rounded-lg text-xs font-medium transition-all cursor-pointer inline-flex items-center gap-1.5"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                      </svg>
+                      Ver Receta ({{ producto.receta_producto?.length || 0 }})
+                    </button>
+                  </td>
                   <td class="px-6 py-4 text-center whitespace-nowrap">
                     <div class="flex items-center justify-center gap-2">
-                      
-                      <!-- Botón Ver Receta (Ojo) -->
                       <button
                         type="button"
-                        (click)="openRecetaModal(item)"
-                        title="Ver Receta / Ingredientes"
-                        class="p-2 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 text-purple-300 text-xs transition-all cursor-pointer"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                      </button>
-
-                      <!-- Botón Editar (Lápiz) -->
-                      <button
-                        type="button"
-                        (click)="openForm(item)"
-                        title="Editar Producto y Receta"
-                        class="p-2 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 text-indigo-300 text-xs transition-all cursor-pointer"
+                        (click)="openForm(producto)"
+                        title="Editar producto"
+                        class="p-1.5 text-slate-400 hover:text-indigo-400 hover:bg-indigo-500/10 rounded-lg transition-colors cursor-pointer"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
                       </button>
 
-                      <!-- Botón Eliminar (Basura) -->
                       <button
                         type="button"
-                        (click)="eliminarProducto(item)"
-                        title="Eliminar Producto Final"
-                        class="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 text-xs transition-all cursor-pointer"
+                        (click)="eliminarProducto(producto)"
+                        title="Eliminar producto"
+                        class="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
                       </button>
-
                     </div>
                   </td>
                 </tr>
@@ -255,27 +334,22 @@
   <!-- Overlay Modal de Ver Receta -->
   @if (selectedProductoForReceta) {
     <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
-      <div class="bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden max-w-lg w-full p-6 space-y-5">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden max-w-lg w-full p-6 space-y-4">
         
-        <!-- Encabezado Modal Receta -->
-        <div class="flex items-start justify-between border-b border-slate-800 pb-4">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-purple-600/10 border border-purple-500/20 text-purple-400 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-              </svg>
-            </div>
-            <div>
-              <h3 class="text-lg font-bold text-white tracking-tight">Receta de Producto</h3>
-              <p class="text-xs text-purple-400 font-medium">{{ selectedProductoForReceta.nombre }}</p>
-            </div>
+        <div class="flex items-start justify-between border-b border-slate-800 pb-3">
+          <div>
+            <h3 class="text-base font-bold text-white tracking-tight">
+              Receta: {{ selectedProductoForReceta.nombre }}
+            </h3>
+            <p class="text-xs text-purple-400 font-semibold">
+              Categoría: {{ selectedProductoForReceta.categoria || 'Sin Categoría' }}
+            </p>
           </div>
 
           <button
             type="button"
             (click)="closeRecetaModal()"
-            class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition-colors"
+            class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
           >
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -283,30 +357,25 @@
           </button>
         </div>
 
-        <!-- Lista de Ingredientes de la Receta -->
         @if (!selectedProductoForReceta.receta_producto || selectedProductoForReceta.receta_producto.length === 0) {
-          <div class="p-6 text-center text-xs text-slate-400">
-            Este producto no tiene ingredientes asignados a su receta.
-          </div>
+          <p class="text-xs text-slate-400 text-center py-4">Este producto no tiene ingredientes asignados en su receta.</p>
         } @else {
-          <div class="space-y-3 max-h-72 overflow-y-auto pr-1">
-            @for (ingrediente of selectedProductoForReceta.receta_producto; track $index) {
-              <div class="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center justify-between">
+          <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
+            @for (item of selectedProductoForReceta.receta_producto; track item.id || item.insumo_id) {
+              <div class="p-3 rounded-xl bg-slate-950/60 border border-slate-800 flex justify-between items-center text-xs">
                 <div>
-                  <h4 class="text-sm font-semibold text-white">
-                    {{ ingrediente.insumos_base?.nombre || 'Insumo descontinuado' }}
-                  </h4>
-                  <p class="text-xs text-slate-400 mt-0.5">
-                    Costo unitario: ${{ ingrediente.insumos_base?.costo_promedio_unidad | number:'1.2-2' }} / {{ ingrediente.insumos_base?.unidad_medida }}
-                  </p>
+                  <span class="font-bold text-white block">{{ item.insumos_base?.nombre || 'Insumo ID: ' + item.insumo_id }}</span>
+                  <span class="text-slate-400">
+                    Cantidad: {{ item.cantidad_requerida }} {{ item.insumos_base?.unidad_medida }}
+                  </span>
                 </div>
                 <div class="text-right">
-                  <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-purple-500/10 text-purple-300 border border-purple-500/20">
-                    {{ ingrediente.cantidad_requerida }} {{ ingrediente.insumos_base?.unidad_medida | uppercase }}
+                  <span class="font-semibold text-slate-300 block">
+                    ${{ (item.cantidad_requerida * (item.insumos_base?.costo_promedio_unidad || 0)) | number:'1.2-2' }}
                   </span>
-                  <p class="text-xs font-semibold text-slate-300 mt-1">
-                    ${{ (ingrediente.cantidad_requerida * (ingrediente.insumos_base?.costo_promedio_unidad || 0)) | number:'1.2-2' }}
-                  </p>
+                  <span class="text-[10px] text-slate-500">
+                    (${{ item.insumos_base?.costo_promedio_unidad || 0 }}/{{ item.insumos_base?.unidad_medida }})
+                  </span>
                 </div>
               </div>
             }
@@ -330,7 +399,6 @@
             Cerrar
           </button>
         </div>
-
       </div>
     </div>
   }

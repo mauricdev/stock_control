@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { ProductosService } from '../../../core/services/productos.service';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { ProductoFormComponent } from '../producto-form/producto-form.component';
@@ -8,7 +8,7 @@ import { ProductoFormComponent } from '../producto-form/producto-form.component'
 @Component({
   selector: 'app-productos-list',
   standalone: true,
-  imports: [CommonModule, RouterLink, ProductoFormComponent],
+  imports: [CommonModule, RouterLink, RouterLinkActive, ProductoFormComponent],
   templateUrl: './productos-list.component.html',
   styleUrl: './productos-list.component.scss',
 })
@@ -21,6 +21,13 @@ export class ProductosListComponent implements OnInit {
   productos: any[] = [];
   isLoading = true;
   errorMessage: string | null = null;
+
+  // Estado del Menú Móvil Hamburguesa
+  isMobileMenuOpen = false;
+
+  toggleMobileMenu(): void {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+  }
 
   // Modales
   showForm = false;

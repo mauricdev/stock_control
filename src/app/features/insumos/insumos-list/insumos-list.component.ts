@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { InsumoBase } from '../../../core/models/insumo.model';
 import { InsumosService } from '../../../core/services/insumos.service';
@@ -14,6 +14,7 @@ import { CompraModalComponent } from '../compra-modal/compra-modal.component';
   imports: [
     CommonModule,
     RouterLink,
+    RouterLinkActive,
     FormsModule,
     InsumoFormComponent,
     CompraModalComponent,
@@ -31,6 +32,13 @@ export class InsumosListComponent implements OnInit {
   isLoading = true;
   errorMessage: string | null = null;
   successMessage: string | null = null;
+
+  // Estado del Menú Móvil Hamburguesa
+  isMobileMenuOpen = false;
+
+  toggleMobileMenu(): void {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+  }
 
   // Estado para el modal de Crear/Editar
   showForm = false;

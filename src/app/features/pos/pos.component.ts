@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { ProductosService } from '../../core/services/productos.service';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { CartItem, VentasService } from '../../core/services/ventas.service';
@@ -9,7 +9,7 @@ import { CartItem, VentasService } from '../../core/services/ventas.service';
 @Component({
   selector: 'app-pos',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, RouterLinkActive],
   templateUrl: './pos.component.html',
   styleUrl: './pos.component.scss',
 })
@@ -31,6 +31,13 @@ export class PosComponent implements OnInit {
   isProcessingVenta = false;
   saleSuccessMessage: string | null = null;
   errorMessage: string | null = null;
+
+  // Estado del Menú Móvil Hamburguesa
+  isMobileMenuOpen = false;
+
+  toggleMobileMenu(): void {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+  }
 
   async ngOnInit(): Promise<void> {
     await this.loadCatalogo();

@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { InsumosService } from '../../../core/services/insumos.service';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { parseISOToLocalDate } from '../../../core/services/dashboard.service';
@@ -8,7 +8,7 @@ import { parseISOToLocalDate } from '../../../core/services/dashboard.service';
 @Component({
   selector: 'app-mermas-historial',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, RouterLinkActive],
   templateUrl: './mermas-historial.component.html',
   styleUrl: './mermas-historial.component.scss',
 })
@@ -22,6 +22,13 @@ export class MermasHistorialComponent implements OnInit {
   isLoading = true;
   errorMessage: string | null = null;
   successMessage: string | null = null;
+
+  // Estado del Menú Móvil Hamburguesa
+  isMobileMenuOpen = false;
+
+  toggleMobileMenu(): void {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+  }
 
   async ngOnInit(): Promise<void> {
     await this.loadHistorial();
