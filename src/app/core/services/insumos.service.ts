@@ -211,25 +211,41 @@ export class InsumosService {
       // 3. Consultar los nombres y unidades de los insumos_base
       const { data: insumos, error: insumosError } = await this.supabaseService.client
         .from('insumos_base')
-        .select('id, nombre, unidad_medida')
+        .select('id, nombre, unidad_medida, costo_promedio_unidad')
         .in('id', insumoIds);
 
       if (insumosError) {
         console.warn('Advertencia al consultar datos de insumos para mermas:', insumosError.message);
       }
 
-      const insumoMap = new Map<string, { id: string; nombre: string; unidad_medida: string }>();
+      const insumoMap = new Map<string, { id: string; nombre: string; unidad_medida: string; costo_promedio_unidad: number }>();
       if (insumos) {
         for (const ins of insumos) {
           insumoMap.set(ins.id, ins);
         }
       }
 
-      // 4. Cruzar en memoria los datos del insumo manteniendo la propiedad insumos_base
-      const mermasConInsumo = mermas.map((m: any) => ({
-        ...m,
-        insumos_base: insumoMap.get(m.referencia_id) || null,
-      }));
+      // 4. Cruzar en memoria los datos del insumo y aplanar propiedades para el template
+      const mermasConInsumo = mermas.map((m: any) => {
+        const insumo = insumoMap.get(m.referencia_id);
+        // Formatear fecha local
+        const fechaLocal = m.fecha ? new Date(m.fecha) : null;
+        const fechaFormateada = fechaLocal
+          ? fechaLocal.toLocaleString('es-CL', {
+              day: '2-digit', month: '2-digit', year: 'numeric',
+              hour: '2-digit', minute: '2-digit'
+            })
+          : 'Sin fecha';
+
+        return {
+          ...m,
+          insumos_base: insumo || null,
+          insumo_nombre: insumo?.nombre || 'Insumo desconocido',
+          insumo_unidad: insumo?.unidad_medida || '',
+          insumo_costo_unitario: insumo?.costo_promedio_unidad || 0,
+          fechaLocalFormatted: fechaFormateada,
+        };
+      });
 
       return { data: mermasConInsumo, error: null };
     } catch (err: any) {
