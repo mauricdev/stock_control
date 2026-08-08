@@ -1,16 +1,16 @@
-<div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
-  <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden max-w-md w-full p-6 space-y-5 text-slate-100">
+<div class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in overflow-y-auto">
+  <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden max-w-md w-full max-h-[90vh] flex flex-col text-slate-100">
     
-    <!-- Encabezado del Modal -->
-    <div class="flex items-start justify-between border-b border-slate-800 pb-4">
+    <!-- Encabezado del Modal (Fixed Top) -->
+    <div class="px-5 sm:px-6 py-4 bg-slate-950/90 border-b border-slate-800 flex items-center justify-between shrink-0">
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
+        <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
           </svg>
         </div>
         <div>
-          <h3 class="text-lg font-bold text-white tracking-tight">Ingresar Compra</h3>
+          <h3 class="text-base sm:text-lg font-bold text-white tracking-tight">Ingresar Compra</h3>
           <p class="text-xs text-slate-400 mt-0.5">
             Recálculo de Costo Promedio Ponderado
           </p>
@@ -20,7 +20,8 @@
       <button
         type="button"
         (click)="onCancel()"
-        class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+        class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+        aria-label="Cerrar modal"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -28,81 +29,86 @@
       </button>
     </div>
 
-    <!-- Detalle del Insumo Seleccionado -->
-    @if (insumo) {
-      <div class="bg-slate-950/60 border border-slate-800/80 p-3.5 rounded-xl flex items-center justify-between text-xs">
-        <div>
-          <span class="text-slate-400">Insumo Base:</span>
-          <span class="font-bold text-white ml-1.5">{{ insumo.nombre }}</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="text-slate-400">Stock Actual:</span>
-          <span class="font-semibold text-emerald-400">
-            {{ insumo.stock_actual }} {{ insumo.unidad_medida | uppercase }}
-          </span>
-        </div>
-      </div>
-    }
-
-    <!-- Formulario Reactivo -->
-    <form [formGroup]="compraForm" (ngSubmit)="onSubmit()" class="space-y-4">
+    <!-- Formulario Reactivo con Scroll Vertical -->
+    <form [formGroup]="compraForm" (ngSubmit)="onSubmit()" class="flex-1 flex flex-col overflow-hidden">
       
-      <!-- Campo 1: Cantidad Comprada -->
-      <div>
-        <label for="cantidadComprada" class="block text-xs font-semibold text-slate-300 mb-1.5">
-          ¿Cuánta cantidad compraste? ({{ insumo?.unidad_medida | uppercase }})
-        </label>
-        <div class="relative">
-          <input
-            id="cantidadComprada"
-            type="number"
-            step="any"
-            formControlName="cantidadComprada"
-            placeholder="Ej: 250"
-            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
-            [ngClass]="{
-              'border-red-500/50 focus:border-red-500 focus:ring-red-500':
-                compraForm.get('cantidadComprada')?.invalid && compraForm.get('cantidadComprada')?.touched
-            }"
-          />
-          <span class="absolute right-3.5 top-2.5 text-xs font-semibold text-slate-500 uppercase">
-            {{ insumo?.unidad_medida }}
-          </span>
+      <!-- Cuerpo del Formulario (Scrollable) -->
+      <div class="flex-1 overflow-y-auto p-5 space-y-4">
+        
+        <!-- Detalle del Insumo Seleccionado -->
+        @if (insumo) {
+          <div class="bg-slate-950/60 border border-slate-800/80 p-3.5 rounded-xl flex items-center justify-between text-xs gap-2">
+            <div class="truncate">
+              <span class="text-slate-400">Insumo Base:</span>
+              <span class="font-bold text-white ml-1.5 truncate">{{ insumo.nombre }}</span>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <span class="text-slate-400">Stock:</span>
+              <span class="font-semibold text-emerald-400">
+                {{ insumo.stock_actual }} {{ insumo.unidad_medida | uppercase }}
+              </span>
+            </div>
+          </div>
+        }
+      
+        <!-- Campo 1: Cantidad Comprada -->
+        <div>
+          <label for="cantidadComprada" class="block text-xs font-semibold text-slate-300 mb-1.5">
+            ¿Cuánta cantidad compraste? ({{ insumo?.unidad_medida | uppercase }})
+          </label>
+          <div class="relative">
+            <input
+              id="cantidadComprada"
+              type="number"
+              step="any"
+              formControlName="cantidadComprada"
+              placeholder="Ej: 250"
+              class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
+              [ngClass]="{
+                'border-red-500/50 focus:border-red-500 focus:ring-red-500':
+                  compraForm.get('cantidadComprada')?.invalid && compraForm.get('cantidadComprada')?.touched
+              }"
+            />
+            <span class="absolute right-3.5 top-2.5 text-xs font-semibold text-slate-500 uppercase">
+              {{ insumo?.unidad_medida }}
+            </span>
+          </div>
+
+          @if (compraForm.get('cantidadComprada')?.invalid && compraForm.get('cantidadComprada')?.touched) {
+            <p class="text-xs text-red-400 mt-1">Ingresa una cantidad comprada válida mayor a 0.</p>
+          }
         </div>
 
-        @if (compraForm.get('cantidadComprada')?.invalid && compraForm.get('cantidadComprada')?.touched) {
-          <p class="text-xs text-red-400 mt-1">Ingresa una cantidad comprada válida mayor a 0.</p>
-        }
-      </div>
+        <!-- Campo 2: Costo Total -->
+        <div>
+          <label for="costoTotal" class="block text-xs font-semibold text-slate-300 mb-1.5">
+            ¿Cuál fue el costo total de esta compra? ($)
+          </label>
+          <div class="relative">
+            <span class="absolute left-3.5 top-2.5 text-sm font-semibold text-slate-400">$</span>
+            <input
+              id="costoTotal"
+              type="number"
+              step="any"
+              formControlName="costoTotal"
+              placeholder="Ej: 13000"
+              class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-8 pr-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
+              [ngClass]="{
+                'border-red-500/50 focus:border-red-500 focus:ring-red-500':
+                  compraForm.get('costoTotal')?.invalid && compraForm.get('costoTotal')?.touched
+              }"
+            />
+          </div>
 
-      <!-- Campo 2: Costo Total -->
-      <div>
-        <label for="costoTotal" class="block text-xs font-semibold text-slate-300 mb-1.5">
-          ¿Cuál fue el costo total de esta compra? ($)
-        </label>
-        <div class="relative">
-          <span class="absolute left-3.5 top-2.5 text-sm font-semibold text-slate-400">$</span>
-          <input
-            id="costoTotal"
-            type="number"
-            step="any"
-            formControlName="costoTotal"
-            placeholder="Ej: 13000"
-            class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-8 pr-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
-            [ngClass]="{
-              'border-red-500/50 focus:border-red-500 focus:ring-red-500':
-                compraForm.get('costoTotal')?.invalid && compraForm.get('costoTotal')?.touched
-            }"
-          />
+          @if (compraForm.get('costoTotal')?.invalid && compraForm.get('costoTotal')?.touched) {
+            <p class="text-xs text-red-400 mt-1">Ingresa un costo total válido mayor o igual a 0.</p>
+          }
         </div>
 
-        @if (compraForm.get('costoTotal')?.invalid && compraForm.get('costoTotal')?.touched) {
-          <p class="text-xs text-red-400 mt-1">Ingresa un costo total válido mayor o igual a 0.</p>
-        }
       </div>
 
-      <!-- Botones de Acción -->
-      <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+      <!-- Barra de Acciones Fija Inferior (Sticky Footer) -->
+      <div class="shrink-0 sticky bottom-0 bg-slate-900/95 backdrop-blur-md px-5 sm:px-6 py-3.5 border-t border-slate-800 flex items-center justify-end gap-3 z-10">
         <button
           type="button"
           (click)="onCancel()"
