@@ -1,0 +1,202 @@
+<div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden max-w-lg w-full">
+  
+  <!-- Encabezado del Formulario -->
+  <div class="px-6 py-5 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+        </svg>
+      </div>
+      <div>
+        <h3 class="text-lg font-bold text-white tracking-tight">
+          {{ insumoEdit ? 'Editar Insumo Base' : 'Agregar Nuevo Insumo' }}
+        </h3>
+        <p class="text-xs text-slate-400">Completa los datos del insumo base</p>
+      </div>
+    </div>
+    <button
+      type="button"
+      (click)="onCancel()"
+      class="text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-800/60 transition-colors cursor-pointer"
+      aria-label="Cerrar"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </div>
+
+  <!-- Alerta de Error -->
+  @if (errorMessage) {
+    <div class="mx-6 mt-4 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-start gap-3">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <span>{{ errorMessage }}</span>
+    </div>
+  }
+
+  <!-- Formulario -->
+  <form [formGroup]="insumoForm" (ngSubmit)="onSubmit()" class="p-6 space-y-5" novalidate>
+    
+    <!-- Nombre -->
+    <div>
+      <label for="nombre" class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">
+        Nombre del Insumo <span class="text-red-400">*</span>
+      </label>
+      <input
+        id="nombre"
+        type="text"
+        formControlName="nombre"
+        placeholder="Ej: Harina de Trigo, Leche Entera"
+        class="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+        [ngClass]="{ 'border-red-500/50 focus:ring-red-500': nombreControl?.invalid && nombreControl?.touched }"
+      />
+      @if (nombreControl?.invalid && nombreControl?.touched) {
+        <p class="text-xs text-red-400 mt-1.5">El nombre es requerido.</p>
+      }
+    </div>
+
+    <!-- Unidad de Medida -->
+    <div>
+      <label for="unidad_medida" class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">
+        Unidad de Medida <span class="text-red-400">*</span>
+      </label>
+      <select
+        id="unidad_medida"
+        formControlName="unidad_medida"
+        class="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all cursor-pointer"
+        [ngClass]="{ 'border-red-500/50 focus:ring-red-500': unidadMedidaControl?.invalid && unidadMedidaControl?.touched }"
+      >
+        <option value="ml">Mililitros (ml)</option>
+        <option value="gr">Gramos (gr)</option>
+        <option value="unidad">Unidad</option>
+      </select>
+      @if (unidadMedidaControl?.invalid && unidadMedidaControl?.touched) {
+        <p class="text-xs text-red-400 mt-1.5">Selecciona una unidad de medida válida.</p>
+      }
+    </div>
+
+    <!-- Grid de Stocks: Stock Actual & Stock Mínimo -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      
+      <!-- Stock Actual (Label Dinámico) -->
+      <div>
+        <label for="stock_actual" class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">
+          Stock Actual ({{ insumoForm.get('unidad_medida')?.value | uppercase }}) <span class="text-red-400">*</span>
+        </label>
+        <input
+          id="stock_actual"
+          type="number"
+          step="any"
+          min="0"
+          formControlName="stock_actual"
+          class="w-full px-3.5 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+          [ngClass]="{ 'border-red-500/50 focus:ring-red-500': stockActualControl?.invalid && stockActualControl?.touched }"
+        />
+        @if (stockActualControl?.invalid && stockActualControl?.touched) {
+          <p class="text-xs text-red-400 mt-1.5">El stock actual debe ser mínimo 0.</p>
+        }
+      </div>
+
+      <!-- Stock Mínimo (Label Dinámico) -->
+      <div>
+        <label for="stock_minimo" class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">
+          Stock Mínimo ({{ insumoForm.get('unidad_medida')?.value | uppercase }}) <span class="text-red-400">*</span>
+        </label>
+        <input
+          id="stock_minimo"
+          type="number"
+          step="any"
+          min="0"
+          formControlName="stock_minimo"
+          class="w-full px-3.5 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+          [ngClass]="{ 'border-red-500/50 focus:ring-red-500': stockMinimoControl?.invalid && stockMinimoControl?.touched }"
+        />
+        @if (stockMinimoControl?.invalid && stockMinimoControl?.touched) {
+          <p class="text-xs text-red-400 mt-1.5">El stock mínimo debe ser mínimo 0.</p>
+        }
+      </div>
+
+    </div>
+
+    <!-- Grid de Costos y Empaque: Costo Total & Unidades del Empaque -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-800/60">
+      
+      <!-- Costo Total ($) -->
+      <div>
+        <label for="costo_total" class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">
+          Costo Total ($) <span class="text-red-400">*</span>
+        </label>
+        <div class="relative">
+          <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500 text-sm">$</span>
+          <input
+            id="costo_total"
+            type="number"
+            step="any"
+            min="0"
+            formControlName="costo_total"
+            placeholder="0.00"
+            class="w-full pl-8 pr-3.5 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+            [ngClass]="{ 'border-red-500/50 focus:ring-red-500': costoTotalControl?.invalid && costoTotalControl?.touched }"
+          />
+        </div>
+        @if (costoTotalControl?.invalid && costoTotalControl?.touched) {
+          <p class="text-xs text-red-400 mt-1.5">El costo total es requerido.</p>
+        }
+      </div>
+
+      <!-- Unidades del Empaque (Label Dinámico) -->
+      <div>
+        <label for="unidades_empaque" class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">
+          Unidades del Empaque ({{ insumoForm.get('unidad_medida')?.value | uppercase }}) <span class="text-red-400">*</span>
+        </label>
+        <input
+          id="unidades_empaque"
+          type="number"
+          step="any"
+          min="0.00001"
+          formControlName="unidades_empaque"
+          placeholder="Ej: 1000 gr o 1 unidad"
+          class="w-full px-3.5 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+          [ngClass]="{ 'border-red-500/50 focus:ring-red-500': unidadesEmpaqueControl?.invalid && unidadesEmpaqueControl?.touched }"
+        />
+        @if (unidadesEmpaqueControl?.invalid && unidadesEmpaqueControl?.touched) {
+          <p class="text-xs text-red-400 mt-1.5">Las unidades del empaque deben ser mayores a 0.</p>
+        }
+      </div>
+
+    </div>
+
+    <!-- Botones de Acción -->
+    <div class="pt-4 flex items-center justify-end gap-3 border-t border-slate-800/80">
+      <button
+        type="button"
+        (click)="onCancel()"
+        class="px-4 py-2.5 rounded-xl border border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white text-sm font-medium transition-all cursor-pointer"
+      >
+        Cancelar
+      </button>
+      <button
+        type="submit"
+        [disabled]="isLoading"
+        class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-950 text-white text-sm font-medium rounded-xl shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-2 cursor-pointer disabled:cursor-not-allowed"
+      >
+        @if (isLoading) {
+          <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span>Guardando...</span>
+        } @else {
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          <span>Guardar Insumo</span>
+        }
+      </button>
+    </div>
+
+  </form>
+</div>

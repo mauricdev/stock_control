@@ -1,9 +1,10 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: 'login',
+    redirectTo: 'dashboard',
     pathMatch: 'full',
   },
   {
@@ -14,7 +15,45 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'dashboard',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/dashboard/dashboard.component').then(
+        (m) => m.DashboardComponent
+      ),
+  },
+  {
+    path: 'insumos',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/insumos/insumos-list/insumos-list.component').then(
+        (m) => m.InsumosListComponent
+      ),
+  },
+  {
+    path: 'productos',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import(
+        './features/productos/productos-list/productos-list.component'
+      ).then((m) => m.ProductosListComponent),
+  },
+  {
+    path: 'pos',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/pos/pos.component').then((m) => m.PosComponent),
+  },
+  {
+    path: 'mermas',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import(
+        './features/mermas/mermas-historial/mermas-historial.component'
+      ).then((m) => m.MermasHistorialComponent),
+  },
+  {
     path: '**',
-    redirectTo: 'login',
+    redirectTo: 'dashboard',
   },
 ];

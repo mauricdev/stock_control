@@ -53,7 +53,7 @@ export class LoginComponent {
       } else if (data.session) {
         this.successMessage = '¡Inicio de sesión exitoso! Redirigiendo...';
         setTimeout(() => {
-          this.router.navigate(['/']);
+          this.router.navigate(['/dashboard']);
         }, 1000);
       }
     } catch (err: any) {

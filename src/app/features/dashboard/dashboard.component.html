@@ -1,0 +1,354 @@
+<div class="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+  
+  <!-- Barra de Navegación Superior -->
+  <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Marca / Navegación por pestañas -->
+      <div class="flex items-center gap-6">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-sky-600 flex items-center justify-center shadow-lg shadow-sky-600/30 text-white font-bold">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
+          <span class="font-bold text-lg tracking-tight text-white">StockControl</span>
+        </div>
+
+        <nav class="hidden md:flex items-center gap-2">
+          <a
+            routerLink="/dashboard"
+            class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-sky-600/20 text-sky-300 border border-sky-500/30 transition-all"
+          >
+            Dashboard
+          </a>
+          <a
+            routerLink="/insumos"
+            class="px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition-all"
+          >
+            Insumos Base
+          </a>
+          <a
+            routerLink="/productos"
+            class="px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition-all"
+          >
+            Productos Compuestos
+          </a>
+          <a
+            routerLink="/pos"
+            class="px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition-all"
+          >
+            Punto de Venta (POS)
+          </a>
+          <a
+            routerLink="/mermas"
+            class="px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition-all"
+          >
+            Historial Mermas
+          </a>
+        </nav>
+      </div>
+
+      <!-- Acciones de Usuario -->
+      <div class="flex items-center gap-3">
+        <button
+          type="button"
+          (click)="cargarDashboard()"
+          title="Recargar Dashboard"
+          class="p-2 rounded-xl border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800 transition-all cursor-pointer"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" [ngClass]="{ 'animate-spin': isLoading }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+        </button>
+
+        <button
+          type="button"
+          (click)="onSignOut()"
+          class="px-3.5 py-1.5 rounded-xl border border-slate-800 text-slate-300 hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+          <span>Cerrar Sesión</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Contenido Principal -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    
+    <!-- Encabezado de Página con Filtro de Período -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight text-white">Dashboard Financiero y Operativo</h1>
+        <p class="text-sm text-slate-400 mt-1">Análisis de ingresos, costos de producción, mermas e inventario</p>
+      </div>
+
+      <!-- Filtros de Tiempo (Hoy, Este Mes, Este Año) -->
+      <div class="bg-slate-900 border border-slate-800 p-1.5 rounded-2xl flex items-center gap-1 shadow-md">
+        <button
+          type="button"
+          (click)="setFiltroTiempo('hoy')"
+          class="px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer"
+          [ngClass]="{
+            'bg-sky-600 text-white shadow-md shadow-sky-600/20': filtroTiempo === 'hoy',
+            'text-slate-400 hover:text-white hover:bg-slate-800': filtroTiempo !== 'hoy'
+          }"
+        >
+          Hoy
+        </button>
+        <button
+          type="button"
+          (click)="setFiltroTiempo('mes')"
+          class="px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer"
+          [ngClass]="{
+            'bg-sky-600 text-white shadow-md shadow-sky-600/20': filtroTiempo === 'mes',
+            'text-slate-400 hover:text-white hover:bg-slate-800': filtroTiempo !== 'mes'
+          }"
+        >
+          Este Mes
+        </button>
+        <button
+          type="button"
+          (click)="setFiltroTiempo('anio')"
+          class="px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer"
+          [ngClass]="{
+            'bg-sky-600 text-white shadow-md shadow-sky-600/20': filtroTiempo === 'anio',
+            'text-slate-400 hover:text-white hover:bg-slate-800': filtroTiempo !== 'anio'
+          }"
+        >
+          Este Año
+        </button>
+      </div>
+    </div>
+
+    <!-- Alerta de Error -->
+    @if (errorMessage) {
+      <div class="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-start gap-3">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>{{ errorMessage }}</span>
+      </div>
+    }
+
+    <!-- SECCIÓN SUPERIOR: Tarjetas de Resumen KPI (5 Tarjetas) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      
+      <!-- Card 1: Ingresos Totales -->
+      <div class="bg-slate-900 border border-slate-800/80 p-4 rounded-3xl shadow-xl space-y-2 hover:border-slate-700 transition-all">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Ingresos Totales</span>
+          <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+        </div>
+        <h3 class="text-xl font-extrabold text-white">
+          ${{ resumen.ingresosTotales | number:'1.2-2' }}
+        </h3>
+        <p class="text-[10px] text-slate-400">Ventas del período</p>
+      </div>
+
+      <!-- Card 2: Egresos Totales -->
+      <div class="bg-slate-900 border border-slate-800/80 p-4 rounded-3xl shadow-xl space-y-2 hover:border-slate-700 transition-all">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Egresos Totales</span>
+          <div class="w-9 h-9 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+            </svg>
+          </div>
+        </div>
+        <h3 class="text-xl font-extrabold text-rose-400">
+          ${{ resumen.egresosTotales | number:'1.2-2' }}
+        </h3>
+        <p class="text-[10px] text-slate-400">Producción + Mermas</p>
+      </div>
+
+      <!-- Card 3: Ganancia Neta -->
+      <div class="bg-slate-900 border border-slate-800/80 p-4 rounded-3xl shadow-xl space-y-2 hover:border-slate-700 transition-all">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Ganancia Neta</span>
+          <div
+            class="w-9 h-9 rounded-xl flex items-center justify-center"
+            [ngClass]="{
+              'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20': resumen.gananciaNeta >= 0,
+              'bg-red-500/10 text-red-400 border border-red-500/20': resumen.gananciaNeta < 0
+            }"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
+        </div>
+        <h3
+          class="text-xl font-extrabold"
+          [ngClass]="{
+            'text-emerald-400': resumen.gananciaNeta >= 0,
+            'text-red-400': resumen.gananciaNeta < 0
+          }"
+        >
+          ${{ resumen.gananciaNeta | number:'1.2-2' }}
+        </h3>
+        <p class="text-[10px] text-slate-400">Ingresos - Egresos</p>
+      </div>
+
+      <!-- Card 4: Costo Total de Insumos (Bodega) - NUEVO VALOR INFORMATIVO SEPARADO -->
+      <div class="bg-slate-900 border border-slate-800/80 p-4 rounded-3xl shadow-xl space-y-2 hover:border-slate-700 transition-all">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Valor de Inventario</span>
+          <div class="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+          </div>
+        </div>
+        <h3 class="text-xl font-extrabold text-indigo-300">
+          ${{ costoTotalInsumosBodega | number:'1.2-2' }}
+        </h3>
+        <p class="text-[10px] text-slate-400">Costo total insumos en bodega</p>
+      </div>
+
+      <!-- Card 5: Mermas Registradas -->
+      <div class="bg-slate-900 border border-slate-800/80 p-4 rounded-3xl shadow-xl space-y-2 hover:border-slate-700 transition-all">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Mermas</span>
+          <div class="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+        </div>
+        <h3 class="text-xl font-extrabold text-amber-400">
+          {{ resumen.mermasCount }} <span class="text-xs font-normal text-slate-400">mermas</span>
+        </h3>
+        <p class="text-[10px] text-slate-400">
+          Pérdida: ${{ resumen.costoTotalMermas | number:'1.0-0' }}
+        </p>
+      </div>
+
+    </div>
+
+    <!-- SECCIÓN: Gráfico de Líneas de Evolución Temporal (Ingresos vs Egresos) -->
+    <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+        <div>
+          <h3 class="text-base font-bold text-white tracking-tight">Evolución de Ingresos vs Egresos</h3>
+          <p class="text-xs text-slate-400 mt-0.5">
+            Comparativa temporal de ventas (verde) y egresos acumulados (rojo) por {{ filtroTiempo === 'hoy' ? 'horas' : (filtroTiempo === 'mes' ? 'días' : 'meses') }}
+          </p>
+        </div>
+        <div class="flex items-center gap-4 text-xs font-medium">
+          <span class="flex items-center gap-1.5 text-emerald-400">
+            <span class="w-3 h-3 rounded-full bg-emerald-500"></span> Ingresos
+          </span>
+          <span class="flex items-center gap-1.5 text-rose-400">
+            <span class="w-3 h-3 rounded-full bg-rose-500"></span> Egresos
+          </span>
+        </div>
+      </div>
+
+      <div class="h-80 w-full pt-2">
+        @if (isLoading) {
+          <div class="h-full flex items-center justify-center text-slate-400 text-xs gap-2">
+            <svg class="animate-spin h-5 w-5 text-sky-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>Generando gráfico evolutivo temporal...</span>
+          </div>
+        } @else {
+          <canvas
+            baseChart
+            [data]="lineChartData"
+            [options]="lineChartOptions"
+            [type]="lineChartType"
+          >
+          </canvas>
+        }
+      </div>
+    </div>
+
+    <!-- SECCIÓN INFERIOR: Tabla de Alertas de Stock Crítico -->
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl shadow-xl overflow-hidden space-y-4 p-6">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white tracking-tight">Alertas de Inventario Crítico</h3>
+            <p class="text-xs text-slate-400">Insumos cuyo stock actual está en o por debajo del stock mínimo configurado</p>
+          </div>
+        </div>
+
+        <a
+          routerLink="/insumos"
+          class="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-all"
+        >
+          Gestionar Insumos &rarr;
+        </a>
+      </div>
+
+      @if (isLoading) {
+        <div class="py-8 text-center text-xs text-slate-400">Cargando alertas de inventario...</div>
+      } @else if (insumosCriticos.length === 0) {
+        <div class="p-6 text-center text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-center justify-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          <span>¡Excelente! Todos los insumos base se encuentran por encima de su stock mínimo.</span>
+        </div>
+      } @else {
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm text-slate-300">
+            <thead class="bg-slate-950/60 text-xs uppercase tracking-wider text-slate-400 border-b border-slate-800">
+              <tr>
+                <th scope="col" class="px-6 py-3.5 font-semibold">Insumo Base</th>
+                <th scope="col" class="px-6 py-3.5 font-semibold text-center">Unidad</th>
+                <th scope="col" class="px-6 py-3.5 font-semibold text-right">Stock Actual</th>
+                <th scope="col" class="px-6 py-3.5 font-semibold text-right">Stock Mínimo</th>
+                <th scope="col" class="px-6 py-3.5 font-semibold text-center">Estado de Alerta</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60">
+              @for (item of insumosCriticos; track item.id || item.nombre) {
+                <tr class="hover:bg-slate-800/40 transition-colors bg-red-950/10">
+                  <td class="px-6 py-4 font-bold text-white whitespace-nowrap">
+                    {{ item.nombre }}
+                  </td>
+                  <td class="px-6 py-4 text-center whitespace-nowrap">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-slate-800 text-slate-300">
+                      {{ item.unidad_medida }}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 text-right font-extrabold text-red-400 whitespace-nowrap">
+                    {{ item.stock_actual | number:'1.0-2' }}
+                  </td>
+                  <td class="px-6 py-4 text-right font-medium text-slate-400 whitespace-nowrap">
+                    {{ item.stock_minimo | number:'1.0-2' }}
+                  </td>
+                  <td class="px-6 py-4 text-center whitespace-nowrap">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-red-500/20 text-red-400 border border-red-500/30">
+                      <span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+                      Reposición Urgente
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+
+  </main>
+
+</div>
