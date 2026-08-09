@@ -32,7 +32,10 @@ export class VentasService {
       const descuentoPorInsumo = new Map<string, number>();
 
       for (const item of carrito) {
-        const cantidadProducto = Number(item.cantidad || 1);
+        const cantidadProducto = Number(item.cantidad || 0);
+        if (cantidadProducto <= 0) {
+          return { success: false, error: new Error('La cantidad vendida de cada producto debe ser mayor a 0.') };
+        }
         const receta = item.receta_producto || [];
 
         for (const ingrediente of receta) {

@@ -19,3 +19,20 @@ export const authGuard: CanActivateFn = (_route, _state) => {
     })
   );
 };
+
+export const unauthGuard: CanActivateFn = (_route, _state) => {
+  const supabaseService = inject(SupabaseService);
+  const router = inject(Router);
+
+  return from(supabaseService.getSession()).pipe(
+    map((session) => {
+      if (session) {
+        return router.createUrlTree(['/dashboard']);
+      }
+      return true;
+    }),
+    catchError(() => {
+      return of(true);
+    })
+  );
+};
