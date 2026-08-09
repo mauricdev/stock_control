@@ -59,15 +59,18 @@ export class MermasHistorialComponent implements OnInit {
   }
 
   async anularMerma(movimiento: any): Promise<void> {
-    if (!movimiento || !movimiento.id || !movimiento.referencia_id) return;
+    if (!movimiento || !movimiento.id) return;
 
-    const insumoNombre = movimiento.insumos_base?.nombre || 'el insumo seleccionado';
-    const unidad = movimiento.insumos_base?.unidad_medida || 'unidades';
+    const isHuerfano = !movimiento.insumos_base || movimiento.insumo_nombre === 'Insumo desconocido';
+    const insumoNombre = movimiento.insumos_base?.nombre || movimiento.insumo_nombre || 'el insumo seleccionado';
+    const unidad = movimiento.insumos_base?.unidad_medida || movimiento.insumo_unidad || 'unidades';
     const cantidad = Number(movimiento.total_transaccion || 0);
 
-    const confirmado = window.confirm(
-      `¿Estás seguro de que deseas anular esta merma de ${cantidad} ${unidad} de "${insumoNombre}"?\n\nLa cantidad será devuelta automáticamente al stock actual del insumo.`
-    );
+    const mensajeConfirmacion = isHuerfano
+      ? 'El insumo original fue eliminado. ¿Deseas borrar este registro histórico de todas formas?'
+      : `¿Estás seguro de que deseas anular esta merma de ${cantidad} ${unidad} de "${insumoNombre}"?\n\nLa cantidad será devuelta automáticamente al stock actual del insumo.`;
+
+    const confirmado = window.confirm(mensajeConfirmacion);
 
     if (!confirmado) return;
 
@@ -85,7 +88,11 @@ export class MermasHistorialComponent implements OnInit {
       if (error) {
         this.errorMessage = error.message || 'No se pudo anular la merma.';
       } else {
-        this.successMessage = `Merma anulada con éxito. Se devolvieron ${cantidad} ${unidad} al stock de "${insumoNombre}".`;
+        if (isHuerfano) {
+          this.successMessage = 'Registro histórico eliminado con éxito.';
+        } else {
+          this.successMessage = `Merma anulada con éxito. Se devolvieron ${cantidad} ${unidad} al stock de "${insumoNombre}".`;
+        }
         
         setTimeout(() => {
           this.successMessage = null;

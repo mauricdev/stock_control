@@ -91,4 +91,153 @@ export class VentasService {
       return { success: false, error: err };
     }
   }
+
+  /**
+   * Obtiene el historial de ventas registradas en movimientos_inventario (tipo = 'VENTA')
+   * haciendo un JOIN relacional con productos_finales(id, nombre) mediante referencia_id.
+   * Ordena los registros por fecha descendente.
+   */
+  async getHistorialVentas(): Promise<{ data: any[] | null; error: any }> {
+    try {
+      // 1. Intento de JOIN directo en Supabase
+      const { data, error } = await this.supabaseService.client
+        .from('movimientos_inventario')
+        .select('*, productos_finales:referencia_id (id, nombre)')
+        .eq('tipo', 'VENTA')
+        .order('fecha', { ascending: false });
+
+      if (!error && data) {
+        return { data, error: null };
+      }
+
+      // 2. Fallback por si la caché de esquema relacional no detecta FK explícita
+      const { data: movimientos, error: movError } = await this.supabaseService.client
+        .from('movimientos_inventario')
+        .select('*')
+        .eq('tipo', 'VENTA')
+        .order('fecha', { ascending: false });
+
+      if (movError) {
+        return { data: null, error: movError };
+      }
+
+      if (!movimientos || movimientos.length === 0) {
+        return { data: [], error: null };
+      }
+
+      const productoIds = Array.from(
+        new Set(movimientos.map((m: any) => m.referencia_id).filter(Boolean))
+      );
+
+      const { data: productos } = await this.supabaseService.client
+        .from('productos_finales')
+        .select('id, nombre')
+        .in('id', productoIds);
+
+      const prodMap = new Map<string, any>();
+      if (productos) {
+        for (const p of productos) {
+          prodMap.set(p.id, p);
+        }
+      }
+
+      const ventasConProducto = movimientos.map((m: any) => ({
+        ...m,
+        productos_finales: prodMap.get(m.referencia_id) || null,
+      }));
+
+      return { data: ventasConProducto, error: null };
+    } catch (err: any) {
+      return { data: null, error: err };
+    }
+  }
+
+  /**
+   * Lógica Transaccional Compleja para Anular Venta:
+   * a) Obtener la receta del producto (receta_producto) para saber qué insumos y en qué cantidades se usaron.
+   * b) Iterar sobre cada ingrediente de la receta y hacer un UPDATE en la tabla insumos_base,
+   *    sumando la cantidad_requerida al stock_actual para devolverlos a la bodega. (Usa Promise.all).
+   * c) Una vez devuelto el stock, hacer un DELETE en movimientos_inventario eliminando el registro de la venta (movimientoId).
+   * 
+   * Maneja errores con try/catch para que, si falla la devolución de stock, no se borre la venta.
+   */
+  async anularVenta(movimientoId: string, productoId: string): Promise<{ success: boolean; error: any }> {
+    try {
+      // a) Obtener la receta del producto (receta_producto)
+      const { data: receta, error: recetaError } = await this.supabaseService.client
+        .from('receta_producto')
+        .select('insumo_id, cantidad_requerida')
+        .eq('producto_id', productoId);
+
+      if (recetaError) {
+        return { success: false, error: recetaError };
+      }
+
+      // Consultar movimiento y producto para determinar multiplicador de cantidad si aplica
+      const { data: movimientoData } = await this.supabaseService.client
+        .from('movimientos_inventario')
+        .select('total_transaccion')
+        .eq('id', movimientoId)
+        .single();
+
+      const { data: productoData } = await this.supabaseService.client
+        .from('productos_finales')
+        .select('precio_venta')
+        .eq('id', productoId)
+        .single();
+
+      let factorCantidad = 1;
+      if (movimientoData?.total_transaccion && productoData?.precio_venta && productoData.precio_venta > 0) {
+        factorCantidad = Math.max(1, Math.round(movimientoData.total_transaccion / productoData.precio_venta));
+      }
+
+      // b) Iterar sobre cada ingrediente de la receta y hacer UPDATE en insumos_base sumando al stock_actual
+      if (receta && receta.length > 0) {
+        const updatePromises = receta.map(async (ingrediente) => {
+          const insumoId = ingrediente.insumo_id;
+          const cantidadSumar = Number(ingrediente.cantidad_requerida || 0) * factorCantidad;
+
+          const { data: insumoData, error: fetchError } = await this.supabaseService.client
+            .from('insumos_base')
+            .select('stock_actual')
+            .eq('id', insumoId)
+            .single();
+
+          if (fetchError || !insumoData) {
+            throw fetchError || new Error(`No se pudo consultar el stock del insumo ${insumoId}`);
+          }
+
+          const stockActual = Number(insumoData.stock_actual || 0);
+          const nuevoStock = stockActual + cantidadSumar;
+
+          const { error: updateError } = await this.supabaseService.client
+            .from('insumos_base')
+            .update({ stock_actual: nuevoStock })
+            .eq('id', insumoId);
+
+          if (updateError) {
+            throw updateError;
+          }
+        });
+
+        // Procesar múltiples actualizaciones con Promise.all
+        await Promise.all(updatePromises);
+      }
+
+      // c) Una vez devuelto el stock, eliminar el registro de la venta en movimientos_inventario
+      const { error: deleteError } = await this.supabaseService.client
+        .from('movimientos_inventario')
+        .delete()
+        .eq('id', movimientoId);
+
+      if (deleteError) {
+        return { success: false, error: deleteError };
+      }
+
+      return { success: true, error: null };
+    } catch (err: any) {
+      // Si falla la devolución de stock, no se borra la venta
+      return { success: false, error: err };
+    }
+  }
 }

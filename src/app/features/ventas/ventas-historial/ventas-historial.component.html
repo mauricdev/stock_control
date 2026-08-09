@@ -10,9 +10,9 @@
         <!-- Marca / Navegación Desktop -->
         <div class="flex items-center gap-6">
           <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-xl bg-amber-600 flex items-center justify-center shadow-lg shadow-amber-600/30 text-white font-bold">
+            <div class="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-600/30 text-white font-bold">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
             <span class="font-bold text-lg tracking-tight text-white">StockControl</span>
@@ -90,7 +90,7 @@
             <span class="hidden sm:inline">Salir</span>
           </button>
 
-          <!-- Botón Menú Hamburguesa Móvil (Visible en celulares/tablets < lg) -->
+          <!-- Botón Menú Hamburguesa Móvil -->
           <button
             type="button"
             (click)="toggleMobileMenu()"
@@ -98,7 +98,7 @@
             class="lg:hidden p-2 rounded-xl border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800 transition-all cursor-pointer flex items-center justify-center ml-1"
           >
             @if (isMobileMenuOpen) {
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
               </svg>
             } @else {
@@ -193,18 +193,18 @@
     <!-- Encabezado de Página -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
-        <h1 class="text-2xl font-bold tracking-tight text-white">Historial de Mermas</h1>
-        <p class="text-sm text-slate-400 mt-1">Registro histórico de insumos mermados y opción de anulación / devolución de stock</p>
+        <h1 class="text-2xl font-bold tracking-tight text-white">Historial de Ventas</h1>
+        <p class="text-sm text-slate-400 mt-1">Registro de transacciones de venta con anulación y devolución automática de insumos a bodega</p>
       </div>
 
       <a
-        routerLink="/insumos"
-        class="px-4 py-2.5 bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-2"
+        routerLink="/pos"
+        class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl shadow-lg shadow-emerald-600/20 transition-all flex items-center justify-center gap-2"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 00-4z" />
         </svg>
-        <span>Ir a Registrar Nueva Merma</span>
+        <span>Ir a Registrar Nueva Venta (POS)</span>
       </a>
     </div>
 
@@ -227,116 +227,99 @@
       </div>
     }
 
-    <!-- Tabla de Historial de Mermas -->
+    <!-- Tabla de Historial de Ventas (Contenedor Responsive con Scroll) -->
     <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
       
       @if (isLoading) {
         <div class="p-12 text-center text-slate-400 flex flex-col items-center justify-center gap-3">
-          <svg class="animate-spin h-8 w-8 text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <svg class="animate-spin h-8 w-8 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
-          <span class="text-sm font-medium">Cargando historial de mermas...</span>
+          <span class="text-sm font-medium">Cargando historial de ventas...</span>
         </div>
-      } @else if (mermas.length === 0) {
+      } @else if (ventas.length === 0) {
         <div class="p-12 text-center flex flex-col items-center justify-center">
           <div class="w-16 h-16 rounded-full bg-slate-800/60 border border-slate-700/50 text-slate-500 flex items-center justify-center mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 00-4z" />
             </svg>
           </div>
-          <h3 class="text-base font-bold text-white mb-1">No hay mermas registradas</h3>
-          <p class="text-xs text-slate-400 max-w-sm">No se han registrado mermas o pérdidas de insumos en el sistema.</p>
+          <h3 class="text-base font-bold text-white mb-1">No hay ventas registradas</h3>
+          <p class="text-xs text-slate-400 max-w-sm">Aún no se han realizado transacciones de venta en el punto de venta.</p>
         </div>
       } @else {
 
         <!-- Vista Móvil: Cards (visible < lg) -->
         <div class="lg:hidden divide-y divide-slate-800/60">
-          @for (item of mermas; track item.id) {
+          @for (item of ventas; track item.id) {
             <div class="p-4 space-y-3 hover:bg-slate-800/20 transition-colors">
-              <!-- Fila 1: Insumo + Fecha -->
               <div class="flex items-start justify-between gap-2">
                 <div>
-                  <h4 class="text-sm font-bold text-white">{{ item.insumo_nombre }}</h4>
+                  <h4 class="text-sm font-bold text-white">{{ item.productoNombre }}</h4>
                   <p class="text-[11px] text-slate-400 mt-0.5">{{ item.fechaLocalFormatted }}</p>
                 </div>
-                <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                  Merma
+                <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  Venta
                 </span>
               </div>
-              <!-- Fila 2: Cantidad + Costo -->
               <div class="flex items-center gap-4">
                 <div class="flex-1 bg-slate-800/50 rounded-xl p-2.5">
-                  <p class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Cantidad</p>
-                  <p class="text-sm font-extrabold text-amber-400 mt-0.5">
-                    {{ item.total_transaccion | number:'1.0-2' }}
-                    <span class="text-[10px] font-semibold text-slate-400 uppercase">{{ item.insumo_unidad }}</span>
-                  </p>
-                </div>
-                <div class="flex-1 bg-slate-800/50 rounded-xl p-2.5">
-                  <p class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Costo Pérdida</p>
-                  <p class="text-sm font-extrabold text-rose-400 mt-0.5">
-                    ${{ (item.total_transaccion * item.insumo_costo_unitario) | number:'1.2-2' }}
+                  <p class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Total Pagado</p>
+                  <p class="text-sm font-extrabold text-emerald-400 mt-0.5">
+                    ${{ (item.total_transaccion || 0) | number:'1.2-2' }}
                   </p>
                 </div>
               </div>
-              <!-- Fila 3: Botón Anular -->
               <button
                 type="button"
-                (click)="anularMerma(item)"
-                title="Anular Merma y Devolver Stock"
-                class="w-full px-3 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 hover:text-red-300 text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                (click)="anularVenta(item)"
+                title="Anular Venta y Devolver Insumos a Bodega"
+                class="w-full px-3 py-2 bg-red-600 hover:bg-red-500 text-white text-xs font-semibold rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
-                <span>{{ (!item.insumos_base || item.insumo_nombre === 'Insumo desconocido') ? 'Eliminar Registro' : 'Anular / Revertir' }}</span>
+                <span>Anular Venta</span>
               </button>
             </div>
           }
         </div>
 
-        <!-- Vista Desktop: Tabla (visible >= lg) -->
+        <!-- Vista Desktop / Tablets: Contenedor con Scroll Responsive y Tabla -->
         <div class="hidden lg:block overflow-x-auto">
-          <table class="w-full text-left text-sm text-slate-300">
+          <table class="w-full text-left text-sm text-slate-300 min-w-[600px]">
             <thead class="bg-slate-950/60 text-xs uppercase tracking-wider text-slate-400 border-b border-slate-800">
               <tr>
-                <th scope="col" class="px-6 py-4 font-semibold">Fecha / Hora</th>
-                <th scope="col" class="px-6 py-4 font-semibold">Insumo Mermado</th>
-                <th scope="col" class="px-6 py-4 font-semibold text-right">Cantidad Perdida</th>
-                <th scope="col" class="px-6 py-4 font-semibold text-right">Costo Estimado Pérdida</th>
+                <th scope="col" class="px-6 py-4 font-semibold">Fecha</th>
+                <th scope="col" class="px-6 py-4 font-semibold">Producto Vendido</th>
+                <th scope="col" class="px-6 py-4 font-semibold text-right">Total Pagado</th>
                 <th scope="col" class="px-6 py-4 font-semibold text-center">Acciones</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-800/60">
-              @for (item of mermas; track item.id) {
+              @for (item of ventas; track item.id) {
                 <tr class="hover:bg-slate-800/30 transition-colors">
                   <td class="px-6 py-4 font-medium text-slate-400 whitespace-nowrap text-xs">
                     {{ item.fechaLocalFormatted }}
                   </td>
                   <td class="px-6 py-4 font-bold text-white whitespace-nowrap">
-                    {{ item.insumo_nombre }}
+                    {{ item.productoNombre }}
                   </td>
-                  <td class="px-6 py-4 text-right font-extrabold text-amber-400 whitespace-nowrap">
-                    {{ item.total_transaccion | number:'1.0-2' }}
-                    <span class="text-xs font-semibold text-slate-400 ml-1 uppercase">
-                      {{ item.insumo_unidad }}
-                    </span>
-                  </td>
-                  <td class="px-6 py-4 text-right font-medium text-rose-400 whitespace-nowrap">
-                    ${{ (item.total_transaccion * item.insumo_costo_unitario) | number:'1.2-2' }}
+                  <td class="px-6 py-4 text-right font-extrabold text-emerald-400 whitespace-nowrap">
+                    ${{ (item.total_transaccion || 0) | number:'1.2-2' }}
                   </td>
                   <td class="px-6 py-4 text-center whitespace-nowrap">
                     <button
                       type="button"
-                      (click)="anularMerma(item)"
-                      title="Anular Merma y Devolver Stock"
-                      class="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 hover:text-red-300 text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-1.5 mx-auto cursor-pointer"
+                      (click)="anularVenta(item)"
+                      title="Anular Venta y Devolver Stock"
+                      class="px-3.5 py-1.5 bg-red-600 hover:bg-red-500 text-white text-xs font-semibold rounded-xl shadow-md shadow-red-600/20 transition-all flex items-center justify-center gap-1.5 mx-auto cursor-pointer"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
-                      <span>{{ (!item.insumos_base || item.insumo_nombre === 'Insumo desconocido') ? 'Eliminar Registro' : 'Anular / Revertir' }}</span>
+                      <span>Anular Venta</span>
                     </button>
                   </td>
                 </tr>

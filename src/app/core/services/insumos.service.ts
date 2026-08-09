@@ -255,8 +255,9 @@ export class InsumosService {
 
   /**
    * Anula un registro de merma previo:
-   * 1. Consulta el stock_actual del insumo y le devuelve la cantidad restada por error.
-   * 2. Elimina el movimiento de merma de la tabla movimientos_inventario.
+   * 1. Consulta el stock_actual del insumo usando maybeSingle() para prevenir errores 406 si el insumo fue eliminado.
+   * 2. Si el insumo existe, le devuelve la cantidad restada por error al stock actual.
+   * 3. Elimina el movimiento de merma de la tabla movimientos_inventario para limpiar el registro histórico o huérfano.
    */
   async anularMerma(
     movimientoId: string,
@@ -264,31 +265,33 @@ export class InsumosService {
     cantidadADevolver: number
   ): Promise<{ data: any; error: any }> {
     try {
-      // 1. Obtener el stock actual del insumo
+      // 1. Obtener el stock actual del insumo usando maybeSingle()
       const { data: insumoData, error: insumoError } = await this.supabaseService.client
         .from('insumos_base')
         .select('stock_actual')
         .eq('id', insumoId)
-        .single();
+        .maybeSingle();
 
-      if (insumoError || !insumoData) {
-        return { data: null, error: insumoError || new Error('Insumo no encontrado para devolver stock.') };
+      if (insumoError) {
+        return { data: null, error: insumoError };
       }
 
-      const stockActual = Number(insumoData.stock_actual || 0);
-      const nuevoStock = stockActual + Number(cantidadADevolver);
+      // Si el insumo existe en bodega, actualizar stock devolviendo la cantidad mermada
+      if (insumoData) {
+        const stockActual = Number(insumoData.stock_actual || 0);
+        const nuevoStock = stockActual + Number(cantidadADevolver);
 
-      // 2. Actualizar el stock devolviendo la cantidad
-      const { error: updateError } = await this.supabaseService.client
-        .from('insumos_base')
-        .update({ stock_actual: nuevoStock })
-        .eq('id', insumoId);
+        const { error: updateError } = await this.supabaseService.client
+          .from('insumos_base')
+          .update({ stock_actual: nuevoStock })
+          .eq('id', insumoId);
 
-      if (updateError) {
-        return { data: null, error: updateError };
+        if (updateError) {
+          return { data: null, error: updateError };
+        }
       }
 
-      // 3. Eliminar el registro de merma de movimientos_inventario
+      // 2. Eliminar el registro de merma de movimientos_inventario (aplica para insumos activos o huérfanos)
       const { data: deleteData, error: deleteError } = await this.supabaseService.client
         .from('movimientos_inventario')
         .delete()

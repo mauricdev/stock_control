@@ -45,6 +45,14 @@ export const routes: Routes = [
       import('./features/pos/pos.component').then((m) => m.PosComponent),
   },
   {
+    path: 'historial-ventas',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import(
+        './features/ventas/ventas-historial/ventas-historial.component'
+      ).then((m) => m.VentasHistorialComponent),
+  },
+  {
     path: 'mermas',
     canActivate: [authGuard],
     loadComponent: () =>
