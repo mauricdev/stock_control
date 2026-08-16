@@ -23,6 +23,33 @@ export class MermasHistorialComponent implements OnInit {
   errorMessage: string | null = null;
   successMessage: string | null = null;
 
+  // --- Paginación Client-Side (Máximo 7 por página) ---
+  currentPage: number = 1;
+  itemsPerPage: number = 7;
+
+  get totalPages(): number {
+    return Math.ceil(this.mermas.length / this.itemsPerPage) || 1;
+  }
+
+  get paginatedItems(): any[] {
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    return this.mermas.slice(startIndex, startIndex + this.itemsPerPage);
+  }
+
+  nextPage(): void {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+      this.cdr.detectChanges();
+    }
+  }
+
+  prevPage(): void {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      this.cdr.detectChanges();
+    }
+  }
+
   // Estado del Menú Móvil Hamburguesa
   isMobileMenuOpen = false;
 
@@ -45,6 +72,9 @@ export class MermasHistorialComponent implements OnInit {
         this.errorMessage = error.message || 'Error al cargar el historial de mermas.';
       } else {
         this.mermas = data || [];
+        if (this.currentPage > this.totalPages) {
+          this.currentPage = this.totalPages;
+        }
       }
     } catch (err: any) {
       this.errorMessage = err?.message || 'Error inesperado al consultar Supabase.';

@@ -22,6 +22,33 @@ export class ProductosListComponent implements OnInit {
   isLoading = true;
   errorMessage: string | null = null;
 
+  // --- Paginación Client-Side (Máximo 7 por página) ---
+  currentPage: number = 1;
+  itemsPerPage: number = 7;
+
+  get totalPages(): number {
+    return Math.ceil(this.productos.length / this.itemsPerPage) || 1;
+  }
+
+  get paginatedItems(): any[] {
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    return this.productos.slice(startIndex, startIndex + this.itemsPerPage);
+  }
+
+  nextPage(): void {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+      this.cdr.detectChanges();
+    }
+  }
+
+  prevPage(): void {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      this.cdr.detectChanges();
+    }
+  }
+
   // Estado del Menú Móvil Hamburguesa
   isMobileMenuOpen = false;
 
@@ -66,6 +93,9 @@ export class ProductosListComponent implements OnInit {
             ganancia: ganancia,
           };
         });
+        if (this.currentPage > this.totalPages) {
+          this.currentPage = this.totalPages;
+        }
       }
     } catch (err: any) {
       this.errorMessage = err?.message || 'Ocurrió un error inesperado al cargar los productos.';
