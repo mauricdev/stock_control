@@ -46,6 +46,12 @@ export const routes: Routes = [
       import('./features/pos/pos.component').then((m) => m.PosComponent),
   },
   {
+    path: 'cocina',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/cocina/cocina.component').then((m) => m.CocinaComponent),
+  },
+  {
     path: 'historial-ventas',
     canActivate: [authGuard],
     loadComponent: () =>

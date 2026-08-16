@@ -94,20 +94,108 @@
               }
             </div>
 
-            <!-- Categoría -->
+            <!-- Categoría ('COMIDA' o 'RETAIL') -->
             <div>
-              <label for="categoria" class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
-                Categoría
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">
+                Categoría <span class="text-red-400">*</span>
               </label>
-              <input
-                id="categoria"
-                type="text"
-                formControlName="categoria"
-                placeholder="Ej: Platos Fuertes, Bebidas, Postres"
-                class="w-full px-3.5 py-2.5 bg-slate-950/70 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-              />
+              <div class="grid grid-cols-2 gap-2.5">
+                <label
+                  class="flex items-center justify-center gap-2 p-2.5 rounded-xl border cursor-pointer transition-all text-xs font-semibold select-none"
+                  [ngClass]="{
+                    'bg-purple-600/20 border-purple-500 text-purple-200 ring-1 ring-purple-500/50 shadow-md shadow-purple-950/40': categoriaControl?.value === 'COMIDA',
+                    'bg-slate-950/70 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200': categoriaControl?.value !== 'COMIDA'
+                  }"
+                >
+                  <input
+                    type="radio"
+                    formControlName="categoria"
+                    value="COMIDA"
+                    class="sr-only"
+                  />
+                  <span>🍔 Comida</span>
+                </label>
+
+                <label
+                  class="flex items-center justify-center gap-2 p-2.5 rounded-xl border cursor-pointer transition-all text-xs font-semibold select-none"
+                  [ngClass]="{
+                    'bg-purple-600/20 border-purple-500 text-purple-200 ring-1 ring-purple-500/50 shadow-md shadow-purple-950/40': categoriaControl?.value === 'RETAIL',
+                    'bg-slate-950/70 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200': categoriaControl?.value !== 'RETAIL'
+                  }"
+                >
+                  <input
+                    type="radio"
+                    formControlName="categoria"
+                    value="RETAIL"
+                    class="sr-only"
+                  />
+                  <span>📦 Retail</span>
+                </label>
+              </div>
             </div>
           </div>
+
+          <!-- SECCIÓN: MODIFICADORES / AGREGADOS (Opcional - Solo si es Comida) -->
+          @if (isComida()) {
+            <div class="bg-slate-950/50 p-4 sm:p-5 rounded-2xl border border-slate-800/80 space-y-3">
+              <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+                <div>
+                  <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300">
+                    Modificadores / Agregados (Opcional)
+                  </h4>
+                  <p class="text-[11px] text-slate-400">Opciones fijas que se pueden seleccionar en el pedido</p>
+                </div>
+                <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400">
+                  {{ opcionesFijas.length }}
+                </span>
+              </div>
+
+              <!-- Input y botón para agregar modificador -->
+              <div class="flex gap-2">
+                <input
+                  #modificadorInput
+                  type="text"
+                  placeholder="Ej: Sin Cebolla, Extra Queso, Salsa BBQ..."
+                  (keydown.enter)="$event.preventDefault(); agregarOpcionFija(modificadorInput)"
+                  class="flex-1 px-3.5 py-2 bg-slate-950/70 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-500 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                />
+                <button
+                  type="button"
+                  (click)="agregarOpcionFija(modificadorInput)"
+                  class="px-3.5 py-2 bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-1 cursor-pointer shrink-0 shadow-sm"
+                  title="Agregar modificador"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                  </svg>
+                  <span>+</span>
+                </button>
+              </div>
+
+              <!-- Lista de píldoras (chips) -->
+              @if (opcionesFijas.length > 0) {
+                <div class="flex flex-wrap gap-2 pt-1">
+                  @for (opcion of opcionesFijas; track $index) {
+                    <span class="inline-flex items-center gap-1.5 bg-blue-900 text-white text-xs font-medium px-3 py-1 rounded-full shadow-sm">
+                      <span>{{ opcion }}</span>
+                      <button
+                        type="button"
+                        (click)="removerOpcionFija($index)"
+                        class="hover:text-red-300 text-blue-200 transition-colors p-0.5 rounded-full hover:bg-blue-800/80 cursor-pointer flex items-center justify-center"
+                        title="Eliminar opción"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                          <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                      </button>
+                    </span>
+                  }
+                </div>
+              } @else {
+                <p class="text-[11px] text-slate-500 italic">No hay modificadores asignados. Escribe uno arriba y presiona + o Enter.</p>
+              }
+            </div>
+          }
 
           <!-- TARJETA DE CÁLCULO DE COSTOS EN TIEMPO REAL -->
           <div class="bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950/40 p-4 sm:p-5 rounded-2xl border border-indigo-500/20 shadow-inner space-y-3">

@@ -34,11 +34,12 @@ export class ProductoFormComponent implements OnInit {
 
   costoProduccionTotal = 0;
   margenEstimado = 0;
+  opcionesFijas: string[] = [];
 
   productoForm: FormGroup = this.fb.group({
     nombre: ['', [Validators.required, Validators.minLength(2)]],
     precio_venta: [0, [Validators.required, Validators.min(0)]],
-    categoria: ['General', [Validators.required]],
+    categoria: ['COMIDA', [Validators.required]],
     ingredientes: this.fb.array([]),
   });
 
@@ -50,8 +51,12 @@ export class ProductoFormComponent implements OnInit {
       this.productoForm.patchValue({
         nombre: this.productoEdit.nombre || '',
         precio_venta: this.productoEdit.precio_venta || 0,
-        categoria: this.productoEdit.categoria || 'General',
+        categoria: this.productoEdit.categoria || 'COMIDA',
       });
+
+      this.opcionesFijas = Array.isArray(this.productoEdit.opciones_fijas)
+        ? [...this.productoEdit.opciones_fijas]
+        : [];
 
       this.ingredientesArray.clear();
 
@@ -67,6 +72,7 @@ export class ProductoFormComponent implements OnInit {
       }
     } else {
       // Modo Creación
+      this.opcionesFijas = [];
       if (this.ingredientesArray.length === 0) {
         this.agregarIngrediente();
       }
@@ -122,6 +128,22 @@ export class ProductoFormComponent implements OnInit {
     return this.insumosList.find((i) => i.id === insumoId);
   }
 
+  isComida(): boolean {
+    return (this.productoForm.get('categoria')?.value || '').toUpperCase() === 'COMIDA';
+  }
+
+  agregarOpcionFija(input: HTMLInputElement): void {
+    const valor = input.value?.trim();
+    if (valor && !this.opcionesFijas.includes(valor)) {
+      this.opcionesFijas.push(valor);
+      input.value = '';
+    }
+  }
+
+  removerOpcionFija(index: number): void {
+    this.opcionesFijas.splice(index, 1);
+  }
+
   calcularCostoTotal(): void {
     let costoTotal = 0;
     const ingredientesValues = this.ingredientesArray.value;
@@ -146,7 +168,7 @@ export class ProductoFormComponent implements OnInit {
       return;
     }
 
-    if (this.ingredientesArray.length === 0) {
+    if (this.isComida() && this.ingredientesArray.length === 0) {
       this.errorMessage = 'Debes agregar al menos un ingrediente a la receta.';
       return;
     }
@@ -160,9 +182,10 @@ export class ProductoFormComponent implements OnInit {
       nombre: formValue.nombre,
       precio_venta: Number(formValue.precio_venta),
       categoria: formValue.categoria,
+      opciones_fijas: this.isComida() ? [...this.opcionesFijas] : [],
     };
 
-    const recetaPayload = formValue.ingredientes.map((item: any) => ({
+    const recetaPayload = (this.isComida() ? formValue.ingredientes : []).map((item: any) => ({
       insumo_id: item.insumo_id,
       cantidad_requerida: Number(item.cantidad_requerida),
     }));

@@ -2,7 +2,8 @@ export interface ProductoFinal {
   id?: string;
   nombre: string;
   precio_venta: number;
-  categoria: string;
+  categoria?: string;
+  opciones_fijas?: string[];
   created_at?: string;
 }
 

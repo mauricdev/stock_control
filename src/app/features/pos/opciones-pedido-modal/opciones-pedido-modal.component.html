@@ -1,0 +1,128 @@
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
+  <div class="bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden max-w-lg w-full max-h-[90vh] flex flex-col">
+    
+    <!-- Header -->
+    <div class="px-6 py-4 bg-slate-950/90 border-b border-slate-800 flex items-center justify-between shrink-0">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-purple-600/10 border border-purple-500/20 text-purple-400 flex items-center justify-center shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-white tracking-tight">
+            {{ producto?.nombre }}
+          </h3>
+          <p class="text-xs text-slate-400">Personaliza modificadores y notas de cocina</p>
+        </div>
+      </div>
+      <button
+        type="button"
+        (click)="onCancel()"
+        class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800/60 transition-colors cursor-pointer"
+        aria-label="Cerrar"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Body (Scrollable) -->
+    <div class="flex-1 overflow-y-auto p-5 sm:p-6 space-y-5">
+      
+      <!-- Opciones Fijas en Cuadrícula -->
+      @if (producto?.opciones_fijas && producto.opciones_fijas.length > 0) {
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2.5">
+            Opciones y Modificadores
+          </label>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+            @for (opcion of producto.opciones_fijas; track opcion) {
+              <button
+                type="button"
+                (click)="toggleOpcion(opcion)"
+                class="p-3.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1 cursor-pointer select-none text-xs font-semibold"
+                [ngClass]="{
+                  'bg-purple-600/25 border-purple-500 text-purple-200 ring-2 ring-purple-500/50 shadow-lg shadow-purple-950/50 scale-[1.02]': isOpcionSelected(opcion),
+                  'bg-slate-950/70 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-800/50': !isOpcionSelected(opcion)
+                }"
+              >
+                <div class="flex items-center gap-1.5">
+                  @if (isOpcionSelected(opcion)) {
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-purple-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                    </svg>
+                  }
+                  <span class="truncate">{{ opcion }}</span>
+                </div>
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Notas Libres / Alergias -->
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
+          Notas Especiales e Instrucciones
+        </label>
+        <textarea
+          rows="3"
+          [(ngModel)]="notasExtra"
+          placeholder="Notas especiales, alergias o instrucciones extra..."
+          class="w-full px-3.5 py-2.5 bg-slate-950/70 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-500 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all resize-none"
+        ></textarea>
+      </div>
+
+      <!-- Selector de Cantidad -->
+      <div class="flex items-center justify-between p-3.5 bg-slate-950/50 border border-slate-800 rounded-2xl">
+        <div>
+          <span class="text-xs font-bold text-white block">Cantidad</span>
+          <span class="text-[11px] text-slate-400">Total: ${{ (cantidad * (producto?.precio_venta || 0)) | number:'1.2-2' }}</span>
+        </div>
+        <div class="flex items-center gap-3 bg-slate-900 border border-slate-800 rounded-xl p-1">
+          <button
+            type="button"
+            (click)="decrementarCantidad()"
+            [disabled]="cantidad <= 1"
+            class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed text-slate-300 font-bold flex items-center justify-center transition-colors cursor-pointer"
+          >
+            -
+          </button>
+          <span class="w-8 text-center font-bold text-white text-sm">{{ cantidad }}</span>
+          <button
+            type="button"
+            (click)="incrementarCantidad()"
+            class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold flex items-center justify-center transition-colors cursor-pointer"
+          >
+            +
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="px-6 py-4 bg-slate-950/90 border-t border-slate-800 flex items-center justify-end gap-3 shrink-0">
+      <button
+        type="button"
+        (click)="onCancel()"
+        class="px-4 py-2.5 rounded-xl border border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white text-xs sm:text-sm font-medium transition-all cursor-pointer"
+      >
+        Cancelar
+      </button>
+      <button
+        type="button"
+        (click)="onConfirm()"
+        class="px-5 py-2.5 bg-purple-600 hover:bg-purple-500 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-lg shadow-purple-600/20 transition-all flex items-center gap-2 cursor-pointer"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        <span>Confirmar y Agregar</span>
+      </button>
+    </div>
+
+  </div>
+</div>

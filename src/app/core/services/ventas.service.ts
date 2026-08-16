@@ -8,6 +8,7 @@ export interface CartItem {
   categoria?: string;
   cantidad: number;
   receta_producto?: any[];
+  modificadores?: string;
 }
 
 @Injectable({
@@ -20,9 +21,15 @@ export class VentasService {
    * Procesa la venta del carrito:
    * 1. Descuenta el stock correspondiente en la tabla insumos_base por cada ingrediente consumido.
    * 2. Registra los movimientos de salida en la tabla movimientos_inventario (tipo 'VENTA').
-   * @param carrito Array de productos seleccionados en el POS con su cantidad y receta
+   * 3. Registra el pedido en la tabla pedidos (KDS/POS).
+   * 4. Registra los detalles del pedido en detalles_pedido con sus modificadores.
+   * @param carrito Array de productos seleccionados en el POS con su cantidad, receta y modificadores
+   * @param nombreCliente Nombre opcional del cliente asignado a la comanda
    */
-  async procesarVenta(carrito: CartItem[]): Promise<{ success: boolean; error: any }> {
+  async procesarVenta(
+    carrito: CartItem[],
+    nombreCliente: string = ''
+  ): Promise<{ success: boolean; error: any; pedido?: any }> {
     if (!carrito || carrito.length === 0) {
       return { success: false, error: new Error('El carrito de compras está vacío.') };
     }
@@ -74,10 +81,57 @@ export class VentasService {
         }
       }
 
-      // 3. Registrar las transacciones en movimientos_inventario (tipo 'VENTA')
+      // 3. Insertar en tabla 'pedidos' (para KDS y seguimiento)
+      const totalVenta = carrito.reduce(
+        (sum, item) => sum + Number(item.cantidad) * Number(item.precio_venta || 0),
+        0
+      );
+
+      const { data: pedidoCreado, error: pedidoError } = await this.supabaseService.client
+        .from('pedidos')
+        .insert([
+          {
+            estado: 'RECIBIDO',
+            origen: 'POS',
+            total: totalVenta,
+            nombre_cliente: nombreCliente?.trim() || null,
+          },
+        ])
+        .select();
+
+      if (pedidoError || !pedidoCreado || pedidoCreado.length === 0) {
+        console.error('Error al registrar pedido en Supabase:', pedidoError);
+        return {
+          success: false,
+          error: pedidoError || new Error('No se pudo registrar el pedido en la base de datos.'),
+        };
+      }
+
+      const pedidoId = pedidoCreado[0].id;
+
+      // 4. Insertar en tabla 'detalles_pedido'
+      const detallesPayload = carrito.map((item) => ({
+        pedido_id: pedidoId,
+        producto_id: item.id,
+        cantidad: Number(item.cantidad),
+        modificadores_seleccionados: item.modificadores ? item.modificadores.trim() : null,
+        subtotal: Number(item.cantidad) * Number(item.precio_venta || 0),
+      }));
+
+      const { error: detallesError } = await this.supabaseService.client
+        .from('detalles_pedido')
+        .insert(detallesPayload);
+
+      if (detallesError) {
+        console.error('Error al registrar detalles del pedido:', detallesError);
+        return { success: false, error: detallesError };
+      }
+
+      // 5. Registrar las transacciones en movimientos_inventario vinculando el pedido_id
       const movimientosPayload = carrito.map((item) => ({
         tipo: 'VENTA',
         referencia_id: item.id,
+        pedido_id: pedidoId,
         total_transaccion: Number(item.cantidad) * Number(item.precio_venta || 0),
       }));
 
@@ -89,7 +143,7 @@ export class VentasService {
         console.warn('Advertencia al insertar movimientos de venta:', movimientosError.message);
       }
 
-      return { success: true, error: null };
+      return { success: true, error: null, pedido: pedidoCreado[0] };
     } catch (err: any) {
       return { success: false, error: err };
     }
@@ -157,16 +211,39 @@ export class VentasService {
 
   /**
    * Lógica Transaccional Compleja para Anular Venta:
-   * a) Obtener la receta del producto (receta_producto) para saber qué insumos y en qué cantidades se usaron.
-   * b) Iterar sobre cada ingrediente de la receta y hacer un UPDATE en la tabla insumos_base,
-   *    sumando la cantidad_requerida al stock_actual para devolverlos a la bodega. (Usa Promise.all).
-   * c) Una vez devuelto el stock, hacer un DELETE en movimientos_inventario eliminando el registro de la venta (movimientoId).
-   * 
-   * Maneja errores con try/catch para que, si falla la devolución de stock, no se borre la venta.
+   * 1. Consulta pedido_id y total_transaccion del movimiento a anular.
+   * 2. Si existe un pedido_id vinculado, actualiza su estado a 'FINALIZADO' en la tabla 'pedidos'
+   *    para remover instantáneamente la comanda de la pantalla KDS de la cocina mediante Realtime.
+   * 3. Obtiene la receta del producto (receta_producto) e incrementa el stock_actual en insumos_base.
+   * 4. Una vez devuelto el stock, elimina el registro en movimientos_inventario.
    */
   async anularVenta(movimientoId: string, productoId: string): Promise<{ success: boolean; error: any }> {
     try {
-      // a) Obtener la receta del producto (receta_producto)
+      // Paso 1: Consultar el movimiento de venta para obtener total_transaccion y pedido_id vinculado
+      const { data: movimientoData, error: movFetchError } = await this.supabaseService.client
+        .from('movimientos_inventario')
+        .select('total_transaccion, pedido_id')
+        .eq('id', movimientoId)
+        .single();
+
+      if (movFetchError) {
+        return { success: false, error: movFetchError };
+      }
+
+      // Paso 2: Si tiene un pedido_id vinculado, marcarlo como 'FINALIZADO' (o eliminarlo)
+      // para que el Realtime lo elimine del KDS al instante
+      if (movimientoData?.pedido_id) {
+        const { error: pedidoUpdateError } = await this.supabaseService.client
+          .from('pedidos')
+          .update({ estado: 'FINALIZADO' })
+          .eq('id', movimientoData.pedido_id);
+
+        if (pedidoUpdateError) {
+          console.warn(`Advertencia al finalizar comanda KDS (${movimientoData.pedido_id}):`, pedidoUpdateError.message);
+        }
+      }
+
+      // Paso 3: Obtener la receta del producto (receta_producto)
       const { data: receta, error: recetaError } = await this.supabaseService.client
         .from('receta_producto')
         .select('insumo_id, cantidad_requerida')
@@ -175,13 +252,6 @@ export class VentasService {
       if (recetaError) {
         return { success: false, error: recetaError };
       }
-
-      // Consultar movimiento y producto para determinar multiplicador de cantidad si aplica
-      const { data: movimientoData } = await this.supabaseService.client
-        .from('movimientos_inventario')
-        .select('total_transaccion')
-        .eq('id', movimientoId)
-        .single();
 
       const { data: productoData } = await this.supabaseService.client
         .from('productos_finales')
@@ -194,7 +264,7 @@ export class VentasService {
         factorCantidad = Math.max(1, Math.round(movimientoData.total_transaccion / productoData.precio_venta));
       }
 
-      // b) Iterar sobre cada ingrediente de la receta y hacer UPDATE en insumos_base sumando al stock_actual
+      // Paso 4: Devolver insumos al inventario (insumos_base)
       if (receta && receta.length > 0) {
         const updatePromises = receta.map(async (ingrediente) => {
           const insumoId = ingrediente.insumo_id;
@@ -223,11 +293,10 @@ export class VentasService {
           }
         });
 
-        // Procesar múltiples actualizaciones con Promise.all
         await Promise.all(updatePromises);
       }
 
-      // c) Una vez devuelto el stock, eliminar el registro de la venta en movimientos_inventario
+      // Paso 5: Eliminar el registro del movimiento de venta
       const { error: deleteError } = await this.supabaseService.client
         .from('movimientos_inventario')
         .delete()
@@ -239,7 +308,6 @@ export class VentasService {
 
       return { success: true, error: null };
     } catch (err: any) {
-      // Si falla la devolución de stock, no se borra la venta
       return { success: false, error: err };
     }
   }

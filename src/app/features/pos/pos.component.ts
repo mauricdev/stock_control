@@ -5,11 +5,12 @@ import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { ProductosService } from '../../core/services/productos.service';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { CartItem, VentasService } from '../../core/services/ventas.service';
+import { OpcionesPedidoModalComponent } from './opciones-pedido-modal/opciones-pedido-modal.component';
 
 @Component({
   selector: 'app-pos',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, FormsModule, RouterLink, RouterLinkActive, OpcionesPedidoModalComponent],
   templateUrl: './pos.component.html',
   styleUrl: './pos.component.scss',
 })
@@ -27,10 +28,16 @@ export class PosComponent implements OnInit {
   searchTerm = '';
 
   carrito: CartItem[] = [];
+  nombreClientePedido: string = '';
+
   isLoading = true;
   isProcessingVenta = false;
   saleSuccessMessage: string | null = null;
   errorMessage: string | null = null;
+
+  // Estado del Modal de Modificadores
+  showOpcionesModal = false;
+  selectedProductoForModal: any = null;
 
   // Estado del Menú Móvil Hamburguesa
   isMobileMenuOpen = false;
@@ -92,40 +99,80 @@ export class PosComponent implements OnInit {
     this.filtrarProductos();
   }
 
-  // --- Lógica del Carrito de Compras ---
+  // --- Lógica de Selección de Productos y Modificadores ---
   agregarAlCarrito(producto: any): void {
-    const itemExistente = this.carrito.find((item) => item.id === producto.id);
+    const isComida = (producto.categoria || '').toUpperCase() === 'COMIDA';
+    const tieneOpciones =
+      producto.opciones_fijas &&
+      Array.isArray(producto.opciones_fijas) &&
+      producto.opciones_fijas.length > 0;
+
+    // Si es Comida y tiene opciones fijas, interceptamos para abrir modal de modificadores
+    if (isComida && tieneOpciones) {
+      this.selectedProductoForModal = producto;
+      this.showOpcionesModal = true;
+      this.cdr.detectChanges();
+      return;
+    }
+
+    // Si es Retail o producto sin opciones fijas, lo agregamos directo
+    this.insertarItemEnCarrito(producto, 1, '');
+  }
+
+  onOpcionesConfirmadas(event: {
+    producto: any;
+    cantidad: number;
+    modificadores: string;
+  }): void {
+    this.insertarItemEnCarrito(event.producto, event.cantidad, event.modificadores);
+    this.closeOpcionesModal();
+  }
+
+  closeOpcionesModal(): void {
+    this.showOpcionesModal = false;
+    this.selectedProductoForModal = null;
+    this.cdr.detectChanges();
+  }
+
+  insertarItemEnCarrito(producto: any, cantidad: number, modificadores: string = ''): void {
+    const modTexto = modificadores ? modificadores.trim() : '';
+
+    // Buscar si ya existe el mismo ítem con exactamente los mismos modificadores
+    const itemExistente = this.carrito.find(
+      (item) => item.id === producto.id && (item.modificadores || '') === modTexto
+    );
 
     if (itemExistente) {
-      itemExistente.cantidad += 1;
+      itemExistente.cantidad += cantidad;
     } else {
       this.carrito.push({
         id: producto.id,
         nombre: producto.nombre,
         precio_venta: Number(producto.precio_venta),
         categoria: producto.categoria,
-        cantidad: 1,
+        cantidad: cantidad,
         receta_producto: producto.receta_producto || [],
+        modificadores: modTexto || undefined,
       });
     }
 
     this.cdr.detectChanges();
   }
 
-  modificarCantidad(productoId: string, delta: number): void {
-    const item = this.carrito.find((i) => i.id === productoId);
+  modificarCantidad(index: number, delta: number): void {
+    const item = this.carrito[index];
     if (!item) return;
 
     item.cantidad += delta;
     if (item.cantidad <= 0) {
-      this.eliminarDelCarrito(productoId);
+      this.eliminarDelCarrito(index);
     } else {
       this.cdr.detectChanges();
     }
   }
 
-  eliminarDelCarrito(productoId: string): void {
-    this.carrito = this.carrito.filter((i) => i.id !== productoId);
+  eliminarDelCarrito(index: number): void {
+    this.carrito.splice(index, 1);
     this.cdr.detectChanges();
   }
 
@@ -155,11 +202,16 @@ export class PosComponent implements OnInit {
     this.cdr.detectChanges();
 
     try {
-      const { success, error } = await this.ventasService.procesarVenta(this.carrito);
+      const { success, error, pedido } = await this.ventasService.procesarVenta(
+        this.carrito,
+        this.nombreClientePedido
+      );
 
       if (success) {
-        this.saleSuccessMessage = '¡Venta procesada con éxito! El inventario de insumos base ha sido actualizado.';
+        const ticketNum = pedido?.numero_ticket ? ` #${pedido.numero_ticket}` : '';
+        this.saleSuccessMessage = `¡Pedido${ticketNum} enviado a cocina y venta procesada con éxito!`;
         this.carrito = [];
+        this.nombreClientePedido = '';
         await this.loadCatalogo();
 
         // Ocultar mensaje tras 4 segundos

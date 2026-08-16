@@ -43,6 +43,11 @@
               class="px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-400 border border-transparent hover:text-white hover:bg-slate-800/60 transition-all">
               Punto de Venta (POS)
             </a>
+            <a routerLink="/cocina"
+              routerLinkActive="bg-orange-600/20 text-orange-300 border-orange-500/30 font-semibold"
+              class="px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-400 border border-transparent hover:text-white hover:bg-slate-800/60 transition-all">
+              🍳 Cocina (KDS)
+            </a>
             <a routerLink="/historial-ventas"
               routerLinkActive="bg-emerald-600/20 text-emerald-300 border-emerald-500/30 font-semibold"
               class="px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-400 border border-transparent hover:text-white hover:bg-slate-800/60 transition-all">
@@ -135,9 +140,17 @@
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24"
             stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" />
+              d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 00-4z" />
           </svg>
           <span>Punto de Venta (POS)</span>
+        </a>
+        <a routerLink="/cocina" (click)="isMobileMenuOpen = false"
+          routerLinkActive="bg-orange-600/20 text-orange-300 border-orange-500/30 font-bold"
+          class="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-slate-300 border border-transparent hover:bg-slate-800 transition-all">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
+          </svg>
+          <span>🍳 Cocina (KDS)</span>
         </a>
         <a routerLink="/historial-ventas" (click)="isMobileMenuOpen = false"
           routerLinkActive="bg-emerald-600/20 text-emerald-300 border-emerald-500/30 font-bold"
@@ -330,26 +343,31 @@
           <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-slate-700" fill="none" viewBox="0 0 24 24"
             stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-              d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" />
+              d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 00-4z" />
           </svg>
           <p class="text-xs font-medium">Haz clic en los productos para agregarlos a la venta</p>
         </div>
         } @else {
         <div class="space-y-3 max-h-80 overflow-y-auto pr-1">
-          @for (item of carrito; track item.id) {
+          @for (item of carrito; track $index) {
           <div
             class="p-3 bg-slate-950/60 border border-slate-800 rounded-2xl flex items-center justify-between gap-3 text-xs">
 
             <div class="flex-1 min-w-0">
               <h4 class="font-bold text-white truncate">{{ item.nombre }}</h4>
-              <span class="text-slate-400 text-[11px] block">
+              @if (item.modificadores) {
+                <p class="text-xs text-gray-400 italic mt-0.5 leading-snug break-words">
+                  {{ item.modificadores }}
+                </p>
+              }
+              <span class="text-slate-400 text-[11px] block mt-0.5">
                 ${{ item.precio_venta | number:'1.2-2' }} c/u
               </span>
             </div>
 
             <!-- Control de Cantidad (+ / -) -->
             <div class="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-xl p-1">
-              <button type="button" (click)="modificarCantidad(item.id, -1)"
+              <button type="button" (click)="modificarCantidad($index, -1)"
                 class="w-6 h-6 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold flex items-center justify-center transition-colors cursor-pointer">
                 -
               </button>
@@ -358,7 +376,7 @@
                 {{ item.cantidad }}
               </span>
 
-              <button type="button" (click)="modificarCantidad(item.id, 1)"
+              <button type="button" (click)="modificarCantidad($index, 1)"
                 class="w-6 h-6 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold flex items-center justify-center transition-colors cursor-pointer">
                 +
               </button>
@@ -372,7 +390,7 @@
             </div>
 
             <!-- Botón Eliminar Ítem -->
-            <button type="button" (click)="eliminarDelCarrito(item.id)"
+            <button type="button" (click)="eliminarDelCarrito($index)"
               class="text-slate-500 hover:text-red-400 p-1 transition-colors cursor-pointer">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                 stroke="currentColor">
@@ -388,6 +406,22 @@
 
         <!-- Resumen de Totales y Botón de Confirmación -->
         <div class="pt-4 border-t border-slate-800 space-y-4">
+          
+          <!-- Nombre del Cliente para la Comanda -->
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-300 mb-1.5">
+              Cliente de la Comanda
+            </label>
+            <div class="relative">
+              <input
+                type="text"
+                [(ngModel)]="nombreClientePedido"
+                placeholder="¿A nombre de quién es el pedido? (Opcional)"
+                class="w-full bg-slate-950/70 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+              />
+            </div>
+          </div>
+
           <div class="space-y-1 text-xs">
             <div class="flex justify-between text-slate-400">
               <span>Subtotal Venta:</span>
@@ -413,7 +447,7 @@
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
               </path>
             </svg>
-            <span>Procesando Venta y Descontando Stock...</span>
+            <span>Procesando Venta y Comanda...</span>
             } @else {
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
               stroke="currentColor">
@@ -427,5 +461,14 @@
 
     </div>
   </main>
+
+  <!-- Modal de Modificadores para Comida -->
+  @if (showOpcionesModal && selectedProductoForModal) {
+    <app-opciones-pedido-modal
+      [producto]="selectedProductoForModal"
+      (confirmed)="onOpcionesConfirmadas($event)"
+      (cancelled)="closeOpcionesModal()"
+    ></app-opciones-pedido-modal>
+  }
 
 </div>

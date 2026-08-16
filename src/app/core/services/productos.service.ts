@@ -36,7 +36,8 @@ export class ProductosService {
           {
             nombre: producto.nombre.trim(),
             precio_venta: Number(producto.precio_venta),
-            categoria: producto.categoria ? producto.categoria.trim() : 'General',
+            categoria: producto.categoria ? producto.categoria.trim() : 'COMIDA',
+            opciones_fijas: producto.opciones_fijas || [],
           },
         ])
         .select();
@@ -85,7 +86,8 @@ export class ProductosService {
         .update({
           nombre: producto.nombre.trim(),
           precio_venta: Number(producto.precio_venta),
-          categoria: producto.categoria ? producto.categoria.trim() : 'General',
+          categoria: producto.categoria ? producto.categoria.trim() : 'COMIDA',
+          opciones_fijas: producto.opciones_fijas || [],
         })
         .eq('id', productoId)
         .select();
