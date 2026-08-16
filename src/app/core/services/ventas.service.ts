@@ -9,6 +9,8 @@ export interface CartItem {
   cantidad: number;
   receta_producto?: any[];
   modificadores?: string;
+  descuento_porcentaje?: number;
+  precio_con_descuento?: number;
 }
 
 @Injectable({
@@ -22,8 +24,8 @@ export class VentasService {
    * 1. Descuenta el stock correspondiente en la tabla insumos_base por cada ingrediente consumido.
    * 2. Registra los movimientos de salida en la tabla movimientos_inventario (tipo 'VENTA').
    * 3. Registra el pedido en la tabla pedidos (KDS/POS).
-   * 4. Registra los detalles del pedido en detalles_pedido con sus modificadores.
-   * @param carrito Array de productos seleccionados en el POS con su cantidad, receta y modificadores
+   * 4. Registra los detalles del pedido en detalles_pedido con sus modificadores y subtotales con descuento.
+   * @param carrito Array de productos seleccionados en el POS con su cantidad, receta, modificadores y descuentos
    * @param nombreCliente Nombre opcional del cliente asignado a la comanda
    */
   async procesarVenta(
@@ -81,11 +83,12 @@ export class VentasService {
         }
       }
 
-      // 3. Insertar en tabla 'pedidos' (para KDS y seguimiento)
-      const totalVenta = carrito.reduce(
-        (sum, item) => sum + Number(item.cantidad) * Number(item.precio_venta || 0),
-        0
-      );
+      // 3. Insertar en tabla 'pedidos' (para KDS y seguimiento) con la suma exacta de subtotales descontados
+      const totalVenta = carrito.reduce((sum, item) => {
+        const desc = Number(item.descuento_porcentaje || 0);
+        const subtotalItem = Number(item.cantidad) * Number(item.precio_venta || 0) * (1 - desc / 100);
+        return sum + subtotalItem;
+      }, 0);
 
       const { data: pedidoCreado, error: pedidoError } = await this.supabaseService.client
         .from('pedidos')
@@ -109,14 +112,18 @@ export class VentasService {
 
       const pedidoId = pedidoCreado[0].id;
 
-      // 4. Insertar en tabla 'detalles_pedido'
-      const detallesPayload = carrito.map((item) => ({
-        pedido_id: pedidoId,
-        producto_id: item.id,
-        cantidad: Number(item.cantidad),
-        modificadores_seleccionados: item.modificadores ? item.modificadores.trim() : null,
-        subtotal: Number(item.cantidad) * Number(item.precio_venta || 0),
-      }));
+      // 4. Insertar en tabla 'detalles_pedido' con el subtotal final descontado
+      const detallesPayload = carrito.map((item) => {
+        const desc = Number(item.descuento_porcentaje || 0);
+        const subtotalItem = Number(item.cantidad) * Number(item.precio_venta || 0) * (1 - desc / 100);
+        return {
+          pedido_id: pedidoId,
+          producto_id: item.id,
+          cantidad: Number(item.cantidad),
+          modificadores_seleccionados: item.modificadores ? item.modificadores.trim() : null,
+          subtotal: subtotalItem,
+        };
+      });
 
       const { error: detallesError } = await this.supabaseService.client
         .from('detalles_pedido')
@@ -128,12 +135,16 @@ export class VentasService {
       }
 
       // 5. Registrar las transacciones en movimientos_inventario vinculando el pedido_id
-      const movimientosPayload = carrito.map((item) => ({
-        tipo: 'VENTA',
-        referencia_id: item.id,
-        pedido_id: pedidoId,
-        total_transaccion: Number(item.cantidad) * Number(item.precio_venta || 0),
-      }));
+      const movimientosPayload = carrito.map((item) => {
+        const desc = Number(item.descuento_porcentaje || 0);
+        const subtotalItem = Number(item.cantidad) * Number(item.precio_venta || 0) * (1 - desc / 100);
+        return {
+          tipo: 'VENTA',
+          referencia_id: item.id,
+          pedido_id: pedidoId,
+          total_transaccion: subtotalItem,
+        };
+      });
 
       const { error: movimientosError } = await this.supabaseService.client
         .from('movimientos_inventario')

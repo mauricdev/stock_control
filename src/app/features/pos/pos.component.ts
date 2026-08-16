@@ -134,6 +134,8 @@ export class PosComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
+  opcionesDescuento: number[] = [0, 10, 15, 20, 50];
+
   insertarItemEnCarrito(producto: any, cantidad: number, modificadores: string = ''): void {
     const modTexto = modificadores ? modificadores.trim() : '';
 
@@ -144,19 +146,39 @@ export class PosComponent implements OnInit {
 
     if (itemExistente) {
       itemExistente.cantidad += cantidad;
+      this.actualizarPrecioItem(itemExistente);
     } else {
+      const precioVenta = Number(producto.precio_venta) || 0;
       this.carrito.push({
         id: producto.id,
         nombre: producto.nombre,
-        precio_venta: Number(producto.precio_venta),
+        precio_venta: precioVenta,
         categoria: producto.categoria,
         cantidad: cantidad,
         receta_producto: producto.receta_producto || [],
         modificadores: modTexto || undefined,
+        descuento_porcentaje: 0,
+        precio_con_descuento: precioVenta,
       });
     }
 
     this.cdr.detectChanges();
+  }
+
+  onDescuentoChange(item: CartItem): void {
+    this.actualizarPrecioItem(item);
+    this.cdr.detectChanges();
+  }
+
+  actualizarPrecioItem(item: CartItem): void {
+    const desc = Number(item.descuento_porcentaje || 0);
+    item.descuento_porcentaje = desc;
+    item.precio_con_descuento = Number(item.precio_venta || 0) * (1 - desc / 100);
+  }
+
+  obtenerSubtotalItem(item: CartItem): number {
+    const desc = Number(item.descuento_porcentaje || 0);
+    return Number(item.cantidad) * Number(item.precio_venta || 0) * (1 - desc / 100);
   }
 
   modificarCantidad(index: number, delta: number): void {
@@ -183,9 +205,20 @@ export class PosComponent implements OnInit {
 
   get totalPagar(): number {
     return this.carrito.reduce(
-      (sum, item) => sum + item.cantidad * (item.precio_venta || 0),
+      (sum, item) => sum + this.obtenerSubtotalItem(item),
       0
     );
+  }
+
+  get totalSinDescuento(): number {
+    return this.carrito.reduce(
+      (sum, item) => sum + Number(item.cantidad) * Number(item.precio_venta || 0),
+      0
+    );
+  }
+
+  get totalDescuentos(): number {
+    return this.totalSinDescuento - this.totalPagar;
   }
 
   get totalItemsCount(): number {

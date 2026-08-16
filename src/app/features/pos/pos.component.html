@@ -351,53 +351,89 @@
         <div class="space-y-3 max-h-80 overflow-y-auto pr-1">
           @for (item of carrito; track $index) {
           <div
-            class="p-3 bg-slate-950/60 border border-slate-800 rounded-2xl flex items-center justify-between gap-3 text-xs">
+            class="p-3 bg-slate-950/60 border border-slate-800 rounded-2xl flex flex-col gap-2.5 text-xs transition-all">
 
-            <div class="flex-1 min-w-0">
-              <h4 class="font-bold text-white truncate">{{ item.nombre }}</h4>
-              @if (item.modificadores) {
-                <p class="text-xs text-gray-400 italic mt-0.5 leading-snug break-words">
-                  {{ item.modificadores }}
-                </p>
-              }
-              <span class="text-slate-400 text-[11px] block mt-0.5">
-                ${{ item.precio_venta | number:'1.2-2' }} c/u
-              </span>
-            </div>
+            <!-- Fila Superior: Nombre, Modificadores, Precios y Botón Eliminar -->
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex-1 min-w-0">
+                <h4 class="font-bold text-white truncate">{{ item.nombre }}</h4>
+                @if (item.modificadores) {
+                  <p class="text-[11px] text-gray-400 italic mt-0.5 leading-snug break-words">
+                    {{ item.modificadores }}
+                  </p>
+                }
+                <div class="flex items-center gap-1.5 mt-0.5">
+                  <span class="text-slate-400 text-[11px]">
+                    ${{ item.precio_venta | number:'1.2-2' }} c/u
+                  </span>
+                  @if ((item.descuento_porcentaje || 0) > 0) {
+                    <span class="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded">
+                      ${{ (item.precio_con_descuento !== undefined ? item.precio_con_descuento : item.precio_venta) | number:'1.2-2' }}
+                    </span>
+                  }
+                </div>
+              </div>
 
-            <!-- Control de Cantidad (+ / -) -->
-            <div class="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-xl p-1">
-              <button type="button" (click)="modificarCantidad($index, -1)"
-                class="w-6 h-6 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold flex items-center justify-center transition-colors cursor-pointer">
-                -
+              <!-- Botón Eliminar Ítem -->
+              <button type="button" (click)="eliminarDelCarrito($index)"
+                class="text-slate-500 hover:text-red-400 p-1 transition-colors cursor-pointer" title="Eliminar ítem">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
               </button>
-
-              <span class="w-6 text-center font-bold text-white text-xs">
-                {{ item.cantidad }}
-              </span>
-
-              <button type="button" (click)="modificarCantidad($index, 1)"
-                class="w-6 h-6 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold flex items-center justify-center transition-colors cursor-pointer">
-                +
-              </button>
             </div>
 
-            <!-- Subtotal del Ítem -->
-            <div class="text-right min-w-[60px]">
-              <span class="font-bold text-emerald-400 block text-xs">
-                ${{ (item.cantidad * item.precio_venta) | number:'1.2-2' }}
-              </span>
-            </div>
+            <!-- Fila Inferior: Selector de Descuento Rápido, Cantidad (+/-) y Subtotal Calculado -->
+            <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-900/80">
+              
+              <!-- Descuento por Ítem (0%, 10%, 15%, 20%, 50%) -->
+              <div class="flex items-center gap-1.5">
+                <span class="text-[10px] text-slate-400 font-medium">Desc:</span>
+                <select
+                  [(ngModel)]="item.descuento_porcentaje"
+                  (ngModelChange)="onDescuentoChange(item)"
+                  class="bg-slate-900 border border-slate-700/80 hover:border-slate-600 rounded-lg px-2 py-1 text-[11px] font-semibold text-slate-200 focus:outline-none focus:border-emerald-500 cursor-pointer transition-colors"
+                  [ngClass]="{ 'text-amber-400 border-amber-500/40 bg-amber-500/10 font-bold': (item.descuento_porcentaje || 0) > 0 }">
+                  @for (desc of opcionesDescuento; track desc) {
+                    <option [ngValue]="desc" class="bg-slate-900 text-slate-200">
+                      {{ desc }}%
+                    </option>
+                  }
+                </select>
+              </div>
 
-            <!-- Botón Eliminar Ítem -->
-            <button type="button" (click)="eliminarDelCarrito($index)"
-              class="text-slate-500 hover:text-red-400 p-1 transition-colors cursor-pointer">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-            </button>
+              <!-- Control de Cantidad (+ / -) -->
+              <div class="flex items-center gap-1 bg-slate-900 border border-slate-800 rounded-xl p-0.5">
+                <button type="button" (click)="modificarCantidad($index, -1)"
+                  class="w-6 h-6 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold flex items-center justify-center transition-colors cursor-pointer">
+                  -
+                </button>
+
+                <span class="w-6 text-center font-bold text-white text-xs">
+                  {{ item.cantidad }}
+                </span>
+
+                <button type="button" (click)="modificarCantidad($index, 1)"
+                  class="w-6 h-6 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold flex items-center justify-center transition-colors cursor-pointer">
+                  +
+                </button>
+              </div>
+
+              <!-- Subtotal del Ítem -->
+              <div class="text-right min-w-[65px]">
+                @if ((item.descuento_porcentaje || 0) > 0) {
+                  <span class="line-through text-slate-500 text-[10px] block leading-none">
+                    ${{ (item.cantidad * item.precio_venta) | number:'1.2-2' }}
+                  </span>
+                }
+                <span class="font-bold text-emerald-400 block text-xs">
+                  ${{ obtenerSubtotalItem(item) | number:'1.2-2' }}
+                </span>
+              </div>
+
+            </div>
 
           </div>
           }
@@ -425,11 +461,13 @@
           <div class="space-y-1 text-xs">
             <div class="flex justify-between text-slate-400">
               <span>Subtotal Venta:</span>
-              <span class="font-medium text-slate-200">${{ totalPagar | number:'1.2-2' }}</span>
+              <span class="font-medium text-slate-200">${{ totalSinDescuento | number:'1.2-2' }}</span>
             </div>
             <div class="flex justify-between text-slate-400">
-              <span>Descuento / Impuestos:</span>
-              <span class="font-medium text-slate-200">$0.00</span>
+              <span>Descuento aplicado:</span>
+              <span class="font-semibold" [ngClass]="totalDescuentos > 0 ? 'text-amber-400' : 'text-slate-400'">
+                {{ totalDescuentos > 0 ? '-$' + (totalDescuentos | number:'1.2-2') : '$0.00' }}
+              </span>
             </div>
             <div class="flex justify-between text-base font-extrabold text-white pt-2 border-t border-slate-800/60">
               <span>Total a Pagar:</span>
